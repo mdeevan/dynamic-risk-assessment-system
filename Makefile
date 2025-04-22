@@ -2,13 +2,17 @@
 # W0212: Access to a protected member 
 # R0903: Too few public methods
 
-ENV_NAME=dynamic-risk-assessment
-ENV_FILE=requirement.txt
+ENV_NAME=dynamic_risk_assessment
+# ENV_FILE=requirement.txt
+ENV_FILE=./config/environment.yml
 
-update-env:
+create-conda-env:
+	conda env create -f $(ENV_FILE) -n $(ENV_NAME)
+
+update-conda-env:
 	conda env update -f $(ENV_FILE) -n $(ENV_NAME)
 
-update:
+update-env:
 	pip install -r config/requirements.txt
 
 test:

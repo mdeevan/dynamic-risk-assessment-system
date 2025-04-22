@@ -1,7 +1,7 @@
 name: Dynamic Risk Assessment
-python_env: config/python_env.yaml
+# python_env: config/python_env.yaml
 # or
-# conda_env: my_env.yaml
+conda_env: config/environment.yml
 # or
 # docker_env:
 #    image:  mlflow-docker-example

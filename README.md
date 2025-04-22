@@ -12,6 +12,8 @@ to connect the VSCODE, install the 'remote explorer' extension and configure the
     User ubuntu  
     IdentityFile /Users/mnave/.ssh/MLOPS2.pem  
 
+### Environment creation options
+#### python virtualenv
 - create environment as follows and then activate  
 `python3 -m vevn .venv  # this creates the environment`
 
@@ -19,6 +21,24 @@ to connect the VSCODE, install the 'remote explorer' extension and configure the
 `source ./.venv/bin/activate`  
 
 Alternately, add "`source ./.venv/bin/activate`" as a last line in **.bashrc file**. This activates the environment everytime the terminal is opened  
+
+#### conda environment
+- follow instructions here to install [miniconda or anaconda](https://www.anaconda.com/docs/getting-started/miniconda/install#linux-terminal-installer)  
+
+* download miniconda
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+
+* download, install miniconda  
+````
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    bash ~/Miniconda3-latest-Linux-x86_64.sh
+````
+- once the installaton is successful. create enviornment. it uses environment.yml file
+make create-conda-env
+
+once the installaton is successful. create enviornment. it uses environment.yml file
+make update-env
+
 
 #### Troubleshooting
 in case of issue in creating environment. following the following steps  

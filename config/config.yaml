@@ -2,16 +2,12 @@ main:
   project_name: dynamic risk assessment
   experiment_name: development
   steps: all
-folder:
-    # input_folder_path: "practicedata", 
-    output_folder_path: "ingesteddata", 
-    test_data_path: "testdata", 
-    output_model_path: "practicemodels", 
-    prod_deployment_path: "production_deployment"
 ingestion:
-  ingestion_folder: "../data/practicedata"
-  
-
+  ingestion_path: "../data/practicedata"
+  # all files in the folder
+  ingestion_filename : '*'
+  output_path: "../data/ingesteddata" 
+  output_filename  : "final_dataset.csv"
 etl:
   sample: "sample1.csv"
   min_price: 10 # dollars

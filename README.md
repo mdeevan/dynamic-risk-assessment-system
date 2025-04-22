@@ -37,3 +37,6 @@ MLProject -> project file for the MLFlow
 python_env.yaml -> contains the python environment configuration  
 requirement.txt -> containing the requirements data  
 
+## Cookie Cutter
+made use of the cookie cutter to generate the boiler plate ML Flow code, which is then customized to meet the needs.
+

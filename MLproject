@@ -1,0 +1,23 @@
+name: Dynamic Risk Assessment
+python_env: ./config/python_env.yaml
+# or
+# conda_env: my_env.yaml
+# or
+# docker_env:
+#    image:  mlflow-docker-example
+
+entry_points:
+  main:
+    parameters:
+
+      steps:
+        description: Comma-separated list of steps to execute (useful for debugging)
+        type: str
+        default: all
+
+      hydra_options:
+        description: Other configuration parameters to override
+        type: str
+        default: ''
+
+    command: "python main.py main.steps=\\'{steps}\\' $(echo {hydra_options})"

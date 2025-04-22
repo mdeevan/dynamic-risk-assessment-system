@@ -30,6 +30,7 @@ def go(cfg: DictConfig):
         if "ingestion" in active_steps:
             print(f"inside main.py ingestion ")
             filename = os.path.join(hydra.utils.get_original_cwd(), 'src', 'data_ingestion')
+            
             _ = mlflow.run(
                 uri = filename,
                 entry_point = "main",

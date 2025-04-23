@@ -12,7 +12,7 @@ import logging
 import dagshub
 import mlflow
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
 
 # mlflow.autolog()

@@ -76,13 +76,26 @@ def go(args):
     # os.environ['MLFLOW_TRACKING_PASSWORD'] = 'cffbcbe17a5519468e0cff1f2a2fc472c527c9d3'
 
 
-curl -u mdeevan:cffbcbe17a5519468e0cff1f2a2fc472c527c9d3 https://dagshub.com/api/v1/user
+# curl -u mdeevan:cffbcbe17a5519468e0cff1f2a2fc472c527c9d3 https://dagshub.com/api/v1/user
 
 # Add this to your training script (train.py)
     print("Tracking URI:", mlflow.get_tracking_uri())
     print("Env vars:", {k: v for k, v in os.environ.items() if "MLFLOW" in k or "DAGSHUB" in k})
 
-    with mlflow.start_run():
+    # os.system('pip freeze > freeze.txt')
+
+
+    os.system("curl -u mdeevan:cffbcbe17a5519468e0cff1f2a2fc472c527c9d3 \
+-X POST https://dagshub.com/mdeevan/dynamic-risk-assessment-system.mlflow/api/2.0/mlflow/runs/create \
+  -H 'Content-Type: application/json' \
+  -d '{\'experiment_id\': \'0\'}' > curl_output.txt")
+
+    print("after os.system curl ")
+
+
+    mlflow.set_experiment("my_experiment")
+
+    with mlflow.start_run() as abcd:
         print("inside mlflow_start_run")
         print(f"inside go and in scope of mlflow.start_run")
         ingest_data.process_files(args)

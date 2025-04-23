@@ -25,13 +25,14 @@ class Ingest_Data():
         self.out_path = args.out_path
         self.out_file = args.out_file
 
-    def process_files(self) -> int:
+    def process_files(self) -> str:
 
+        df = pd.DataFrame()
         try:
             if (self.in_file == "*"):
                 print(f"self.infile {self.in_file}")
                 files = [f for f in listdir(self.in_path) if isfile(join(self.in_path, f))]
-                df = pd.DataFrame()
+
                 for file in files:
                     filename = join(self.in_path, file)
 
@@ -40,67 +41,50 @@ class Ingest_Data():
                     df = pd.concat([df, df_new], axis=1)
             else:
                 filename = join(self.in_path, self.in_file)
+
                 df = self.read_file(filename)
         except Exception as err:
             print("error reading file %s", err)
 
+        try:
+            os.mkdir(self.out_path)
+        except Exception as err:
+            logger.info("error creating directory : %s ", err)
 
         out = join(self.out_path, self.out_file)
+
+        print(f"out filename {out}")
         try:
             df.to_csv(out)
         except Exception as err:
             print("error %s in creating outfile %s", err, out)
             raise
 
-        return True
+        return out
 
     def __read_file(filename:str) -> pd.DataFrame:
         return pd.read_csv(filename)
 
 def go(args):
 
-    # run = wandb.init(job_type="data_ingestion")
-    # run.config.update(args)
-
     ingest_data = Ingest_Data(args)
 
-    dagshub.init(repo_owner='mdeevan', 
-                 repo_name='dynamic-risk-assessment-system', 
-                 mlflow=True)
-
-    print("beore mlflow_start_run")
-    
-    # mlflow.set_tracking_uri("https://dagshub.com/mdeevan/dynamic-risk-assessment-system.mlflow")
-    # mlflow.
-    # os.environ['MLFLOW_TRACKING_USERNAME'] = 'mdeevan'
-    # os.environ['MLFLOW_TRACKING_PASSWORD'] = 'cffbcbe17a5519468e0cff1f2a2fc472c527c9d3'
-
-
-# curl -u mdeevan:cffbcbe17a5519468e0cff1f2a2fc472c527c9d3 https://dagshub.com/api/v1/user
-
-# Add this to your training script (train.py)
-    print("Tracking URI:", mlflow.get_tracking_uri())
-    print("Env vars:", {k: v for k, v in os.environ.items() if "MLFLOW" in k or "DAGSHUB" in k})
-
-    # os.system('pip freeze > freeze.txt')
-
-
-    os.system("curl -u mdeevan:cffbcbe17a5519468e0cff1f2a2fc472c527c9d3 \
--X POST https://dagshub.com/mdeevan/dynamic-risk-assessment-system.mlflow/api/2.0/mlflow/runs/create \
-  -H 'Content-Type: application/json' \
-  -d '{\'experiment_id\': \'0\'}' > curl_output.txt")
-
-    print("after os.system curl ")
-
-
-    mlflow.set_experiment("my_experiment")
+    # print("Tracking URI:", mlflow.get_tracking_uri())
+    # print("Env vars:", {k: v for k, v in os.environ.items() if "MLFLOW" in k or "DAGSHUB" in k})
 
     with mlflow.start_run() as abcd:
         print("inside mlflow_start_run")
         print(f"inside go and in scope of mlflow.start_run")
-        ingest_data.process_files(args)
+        
+        try:
 
-        mlflow.log_param("out_filename", args.out_file)
+            path = ingest_data.process_files()
+
+            mlflow.log_param("out_filename", args.out_file)
+            mlflow.log_artifact(path)
+        except Exception as err:
+            logger.error("Error ingesting data %s", err)
+
 
     # Download input artifact. This will also log that this script is using this
     # particular version of the artifact

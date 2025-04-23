@@ -1,8 +1,9 @@
+import os
 import json
 
 import mlflow
+import dagshub
 import tempfile
-import os
 import hydra
 from omegaconf import DictConfig
 
@@ -160,4 +161,18 @@ def go(cfg: DictConfig):
 
 if __name__ == "__main__":
     print('inside go')
+
+    dagshub.init(repo_owner='mdeevan', 
+                 repo_name='dynamic-risk-assessment-system', 
+                 mlflow=True)
+
+    print("beore mlflow_start_run")
+    
+    # mlflow.set_tracking_uri("https://dagshub.com/mdeevan/dynamic-risk-assessment-system.mlflow")
+    # mlflow.set_experiment("my_experiment")
+
+    print("Tracking URI:", mlflow.get_tracking_uri())
+    print("Env vars:", {k: v for k, v in os.environ.items() if "MLFLOW" in k or "DAGSHUB" in k})
+
+
     go()

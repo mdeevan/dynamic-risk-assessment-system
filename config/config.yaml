@@ -3,10 +3,10 @@ main:
   experiment_name: development
   steps: all
 ingestion:
-  ingestion_path: "../data/practicedata"
+  ingestion_path: "./practicedata"
   # all files in the folder
   ingestion_filename : '*'
-  output_path: "../data/ingesteddata" 
+  output_path: "./ingesteddata" 
   output_filename  : "final_dataset.csv"
 etl:
   sample: "sample1.csv"

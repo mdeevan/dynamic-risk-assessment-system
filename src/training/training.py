@@ -1,20 +1,15 @@
 #!/usr/bin/env python
 """
-ingest data from input folder, combine and save to an output folder
+train the model based on the finaldata.csv created in the previous step of the pipeline
 """
-import os
-import pandas as pd
 import argparse
 import logging
-import dagshub
-import mlflow
-from datetime import datetime
+import os
 
-# logging.basicConfig(level=logging.DEBUG, format="%(asctime)-15s %(message)s")
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
 
-# mlflow.autolog()
 
 class Ingest_Data():
 
@@ -126,60 +121,46 @@ class Ingest_Data():
 
 def go(args):
 
-    ingest_data = Ingest_Data(args)
 
-    # print("Tracking URI:", mlflow.get_tracking_uri())
-    # print("Env vars:", {k: v for k, v in os.environ.items() if "MLFLOW" in k or "DAGSHUB" in k})
+    # Download input artifact. This will also log that this script is using this
+    # particular version of the artifact
+    # artifact_local_path = run.use_artifact(args.input_artifact).file()
 
-    # mlflow.set_experiment("data-ingestion")
-    with mlflow.start_run():
-        print("inside mlflow_start_run")
-        print(f"inside go and in scope of mlflow.start_run")
-        
-        try:
+    ######################
+    # YOUR CODE HERE     #
+    ######################
 
-            path = ingest_data.process_files()
-
-            mlflow.log_param("out_filename", args.out_file)
-            mlflow.log_artifact(path)
-
-        except Exception as err:
-            logger.error("Error ingesting data %s", err)
-
-
-
+    return True;
 
 if __name__ == "__main__":
 
-    print("inside run_data_ingestion.py")
-
-    parser = argparse.ArgumentParser(description="ingest data from the input folder")
+    parser = argparse.ArgumentParser(description="model training")
 
     parser.add_argument(
         "--in_path", 
-        type=str, 
-        help='path to the data file for ingestion',  
+        type=str,
+        help="path to the source data file",
         required=True
     )
 
     parser.add_argument(
         "--in_file", 
         type=str,
-        help='filename to ingest, asterisk (*) means all files in the folder', 
+        help="source data file to process",
         required=True
     )
 
     parser.add_argument(
         "--out_path", 
-        type=str ,
-        help="path where the processed file to be stored",
+        type=str,
+        help="path where the model will be stored",
         required=True
     )
 
     parser.add_argument(
-        "--out_file", 
+        "--out_model", 
         type=str,
-        help='name of the outfile',
+        help="model name to use in saving",
         required=True
     )
 

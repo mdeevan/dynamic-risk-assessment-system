@@ -4,7 +4,8 @@
 """
 import argparse
 import logging
-import wandb
+import dagshub
+import mlflow
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
@@ -13,16 +14,22 @@ logger = logging.getLogger()
 
 def go(args):
 
-    run = wandb.init(job_type="{{cookiecutter.job_type}}")
-    run.config.update(args)
-
-    # Download input artifact. This will also log that this script is using this
-    # particular version of the artifact
-    # artifact_local_path = run.use_artifact(args.input_artifact).file()
+    with mlflow.start_run():
+        print("inside mlflow_start_run")
+        print(f"inside go and in scope of mlflow.start_run")
+        
+        try:
 
     ######################
     # YOUR CODE HERE     #
     ######################
+
+            mlflow.log_param("out_filename", args.out_file)
+            mlflow.log_artifact(path)
+
+        except Exception as err:
+            logger.error("Error   %s", err)
+
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@ train the model based on the finaldata.csv created in the previous step of the p
 import argparse
 import logging
 import os
+import pandas as pd
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
@@ -17,7 +18,7 @@ class Ingest_Data():
         self.in_path = args.in_path
         self.in_file = args.in_file
         self.out_path = args.out_path
-        self.out_file = args.out_file
+        self.out_model = args.out_model
         self.parent_folder = "../../"
 
     def __get_filename(self, p_filename:str, p_path:str=None) -> None:
@@ -48,41 +49,20 @@ class Ingest_Data():
         '''
         return pd.read_csv(filename)
 
-    def process_files(self) -> str:
+    def train_model(self) -> str:
         '''
         read in the files, combine, drop duplicates and save the file
 
         INPUT:
             uses instance level variables
 
-                    RETURN:
+        RETURN:
             path of the output file
         '''
 
-        df = pd.DataFrame()
-        parent_folder = "../"
-        files = []
         try:
-            if (self.in_file == "*"):
-                print(f"\nrun-data-ingestion: self.infile {self.in_file}")
-
-                source_folder = os.path.join(self.parent_folder, self.in_path)
-
-                files = [f for f in os.listdir(source_folder) if os.path.isfile(self.__get_filename(f))]
-
-                print(f"filename : {files}")
-
-                for file in files:
-                    filename = self.__get_filename(file)
-
-                    print(f"run-data-ingestion: filename : {filename}")
-                    df_new = self.__read_file(filename)
-                    df = pd.concat([df, df_new], axis=1)
-            else:
-                print(f"run-data-ingestion: filename : {filename}")
-                filename = self.__get_filename(file)
-
-                df = self.read_file(filename)
+            filename = self.__get_filename(self.in_file)
+            df = self.__read_file(filename)
     
         except Exception as err:
             print("error reading file %s", err)
@@ -161,6 +141,13 @@ if __name__ == "__main__":
         "--out_model", 
         type=str,
         help="model name to use in saving",
+        required=True
+    )
+
+    parser.add_argument(
+        "--numeric_cols", 
+        type=str,
+        help="columns with numeric datatypes",
         required=True
     )
 

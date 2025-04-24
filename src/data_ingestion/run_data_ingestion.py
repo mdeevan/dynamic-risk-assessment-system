@@ -82,10 +82,10 @@ class Ingest_Data():
 
                     print(f"run-data-ingestion: filename : {filename}")
                     df_new = self.__read_file(filename)
-                    df = pd.concat([df, df_new], axis=1)
+                    df = pd.concat([df, df_new], axis=0)
             else:
-                print(f"run-data-ingestion: filename : {filename}")
-                filename = self.__get_filename(file)
+                print(f"run-data-ingestion: filename : {self.in_file}")
+                filename = self.__get_filename(self.in_file)
 
                 df = self.read_file(filename)
     

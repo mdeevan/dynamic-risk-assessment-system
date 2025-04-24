@@ -50,8 +50,8 @@ def go(cfg: DictConfig):
                 parameters={
                     "in_path": cfg["ingestion"]["ingestion_path"],
                     "in_file": cfg["ingestion"]["ingestion_filename"],
-                    "out_path": cfg["ingestion"]["output_path"],
-                    "out_file": cfg["ingestion"]["output_filename"],
+                    "out_path": cfg["ingestion"]["ingested_data_path"],
+                    "out_file": cfg["ingestion"]["ingested_filename"],
                 },
             )
 
@@ -73,10 +73,14 @@ def go(cfg: DictConfig):
                 entry_point="main",
                 env_manager="conda",
                 parameters={
-                    "in_path": cfg["ingestion"]["ingestion_path"],
-                    "in_file": cfg["ingestion"]["ingestion_filename"],
-                    "out_path": cfg["ingestion"]["output_path"],
-                    "out_file": cfg["ingestion"]["output_filename"],
+                    #  out path and outfile are where the ingested file is stored, 
+                    # from previous 'ingestion' step
+
+                    "in_path": cfg["ingestion"]["ingested_data_path"],
+                    "in_file": cfg["ingestion"]["ingested_filename"],
+                    "out_path": cfg["ingestion"]["output_model_path"],
+                    "out_model": cfg["ingestion"]["output_model_name"],
+                    "numerics_cols": cfg["ingestion"]["numeric_columns"],
                 },
             )
 

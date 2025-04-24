@@ -9,6 +9,11 @@ ingestion:
   ingestion_filename : '*'
   output_path: "ingesteddata" 
   output_filename  : "finaldata.csv"
+  ingested_data_path: "ingesteddata" 
+  ingested_filename  : "finaldata.csv"
+  output_model_path: "practicemodels", 
+  output_model_name: "trainedmodel.pkl",
+  numeric_columns:  ["lastmonth_activity", "lastyear_activity", "number_of_employees"] 
 etl:
   sample: "sample1.csv"
   min_price: 10 # dollars

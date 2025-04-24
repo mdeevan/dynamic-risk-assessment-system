@@ -18,9 +18,10 @@ entry_points:
         description: out folder
         type: string
 
-      out_file :
+      out_file:
         description: out filename
         type: string
+
 
 
     command: >-

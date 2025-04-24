@@ -9,21 +9,31 @@ entry_points:
         description: folder containing for the source data  
         type: string
 
-       in_file:
+      in_file:
         description: soure data filename
         type: string
 
-       out_path:
+      out_path:
         description: folder to save the generated model
         type: string
 
-       out_model:
+      out_model:
         description: name to be used in saving the model
         type: string
 
+      num_features:
+        description: list of numeric features to consider for model training
+        type: array
+
+      lr_params:
+        description: list of logistic regression parameters to consider for model training
+        type: array
 
     command: >-
         python training.py  --in_path {in_path} \
                             --in_file {in_file} \
                             --out_path {out_path} \
-                            --out_model {out_model} 
+                            --out_model {out_model} \
+                            --num_features {num_features} \
+                            --lr_params {lr_params}
+

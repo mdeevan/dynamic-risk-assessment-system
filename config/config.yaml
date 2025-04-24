@@ -3,7 +3,6 @@ main:
   experiment_name: development
   steps: all
 ingestion:
-  parent_folder: "..\..\"
   ingestion_path: "practicedata"
   # all files in the folder
   ingestion_filename : '*'
@@ -11,15 +10,38 @@ ingestion:
   output_filename  : "finaldata.csv"
   ingested_data_path: "ingesteddata" 
   ingested_filename  : "finaldata.csv"
-  output_model_path: "practicemodels", 
-  output_model_name: "trainedmodel.pkl",
+  output_model_path: "practicemodels" 
+  output_model_name: "trainedmodel.pkl"
   numeric_columns:  ["lastmonth_activity", "lastyear_activity", "number_of_employees"] 
+  # parent_folder: "../../"
+num_features:
+- lastmonth_activity
+- lastyear_activity
+- number_of_employees
+- exited
 etl:
   sample: "sample1.csv"
   min_price: 10 # dollars
   max_price: 350 # dollars
 data_check:
   kl_threshold: 0.2
+logistic_regression_params:
+- C:1.0
+- class_weight:None, 
+- dual:False, 
+- fit_intercept:True,
+- intercept_scaling:1, 
+- l1_ratio:None, 
+- max_iter:100,
+- multi_class:'warn', 
+- n_jobs:None, 
+- penalty:'l2',
+- random_state:0, 
+- solver:'liblinear', 
+- tol:0.0001, 
+- verbose:0,
+- warm_start:False
+
 modeling:
   # Fraction of data to use for test (the remaining will be used for train and validation)
   test_size: 0.2

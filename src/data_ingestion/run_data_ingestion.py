@@ -65,7 +65,7 @@ class Ingest_Data():
         '''
 
         df = pd.DataFrame()
-        parent_folder = "../"
+        # parent_folder = "../"
         files = []
         try:
             if (self.in_file == "*"):
@@ -84,10 +84,12 @@ class Ingest_Data():
                     df_new = self.__read_file(filename)
                     df = pd.concat([df, df_new], axis=0)
             else:
+                files.append(self.in_file)
+
                 print(f"run-data-ingestion: filename : {self.in_file}")
                 filename = self.__get_filename(self.in_file)
 
-                df = self.read_file(filename)
+                df = self.__read_file(filename)
     
         except Exception as err:
             print("error reading file %s", err)
@@ -182,7 +184,6 @@ if __name__ == "__main__":
         help='name of the outfile',
         required=True
     )
-
 
     args = parser.parse_args()
 

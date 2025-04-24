@@ -1,0 +1,5 @@
+num_features:
+- lastmonth_activity
+- lastyear_activity
+- number_of_employees
+- exited

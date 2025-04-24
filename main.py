@@ -52,6 +52,7 @@ def go(cfg: DictConfig):
                     "in_file": cfg["ingestion"]["ingestion_filename"],
                     "out_path": cfg["ingestion"]["ingested_data_path"],
                     "out_file": cfg["ingestion"]["ingested_filename"],
+                    # "modeling": cfg["modeling"]
                 },
             )
 
@@ -80,7 +81,8 @@ def go(cfg: DictConfig):
                     "in_file": cfg["ingestion"]["ingested_filename"],
                     "out_path": cfg["ingestion"]["output_model_path"],
                     "out_model": cfg["ingestion"]["output_model_name"],
-                    "numerics_cols": cfg["ingestion"]["numeric_columns"],
+                    "num_features": cfg["num_features"],
+                    "lr_params": cfg["logistic_regression_params"]
                 },
             )
 

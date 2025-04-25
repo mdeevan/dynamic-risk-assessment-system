@@ -82,7 +82,7 @@ def go(cfg: DictConfig):
                     "out_path": cfg["ingestion"]["output_model_path"],
                     "out_model": cfg["ingestion"]["output_model_name"],
                     "num_features": cfg["num_features"],
-                    "lr_params": cfg["logistic_regression_params"]
+                    "lr_params": cfg["logistic_regression_params"][0]
                 },
             )
 

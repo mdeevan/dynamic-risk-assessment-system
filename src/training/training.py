@@ -11,12 +11,14 @@ from sklearn import metrics
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 import pickle
+import mlflow
+import json
 
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
 
 
-class Ingest_Data():
+class Train_Model():
 
     def __init__(self, args):
         self.in_path = args.in_path
@@ -26,35 +28,57 @@ class Ingest_Data():
         self.parent_folder = "../../"
         self.num_features =""
 
-        lrp=args[0]
-        self.C  = lrp.C 
-        self.class_weight  = lrp.class_weight 
-        self.dual  = lrp.dual 
-        self.fit_intercept  = lrp.fit_intercept 
-        self.intercept_scaling = lrp.intercept_scaling  
-        self.l1_ratio  = lrp.l1_ratio 
-        self.max_iter  = lrp.max_iter 
-        self.multi_class = lrp.multi_class  
-        self.n_jobs   = lrp.n_jobs  
-        self.penalty  = lrp.penalty 
-        self.random_state   = lrp.random_state  
-        self.solver   = lrp.solver  
-        self.tol   = lrp.tol  
-        self.verbose  = lrp.verbose 
-        self.warm_start  = lrp.warm_start 
+
+        nf=args.num_features.replace("'", '"')
+        print (f"type of nf: {type(nf)}")
+        print(f"nf: {nf}")
+
+        # nf = nf.replace("[","").replace("]","")
+        num_features = json.loads(nf)
+
+        print (f"type of num_features {type(num_features)}")
+        print(f"num_features {num_features}")
+
+        # print(f"args : {args}")
+        # lr_params = args.lr_params
+        # print(f"lr_params {lr_params}")
+        # print(f"lr_params-type {type(lr_params)}")
+
+        lrp = json.loads( args.lr_params.replace("'", '"' ).replace("True",'"True"').replace("False",'"False"') )
+        # lrp=args.lr_params
+        print(f"args -lrp {lrp}")
+
+        print(f"lrp type {type(lrp)}")
+        print(f"args -lrp - C{lrp['C']}")
+        self.C  = lrp['C'] 
+
+        self.class_weight  = lrp['class_weight'] 
+        self.dual  = lrp['dual'] 
+        self.fit_intercept  = lrp['fit_intercept'] 
+        self.intercept_scaling = lrp['intercept_scaling']  
+        self.l1_ratio  = lrp['l1_ratio'] 
+        self.max_iter  = lrp['max_iter'] 
+        self.multi_class = lrp['multi_class']  
+        self.n_jobs   = lrp['n_jobs']  
+        self.penalty  = lrp['penalty'] 
+        self.random_state   = lrp['random_state']  
+        self.solver   = lrp['solver']  
+        self.tol   = lrp['tol']  
+        self.verbose  = lrp['verbose'] 
+        self.warm_start  = lrp['warm_start'] 
 
 
-        with open("params.yml") as stream:
-            try:
-                cfg = yaml.safe_load(stream)
+        # with open("params.yml") as stream:
+        #     try:
+        #         cfg = yaml.safe_load(stream)
 
-                self.num_features = cfg['num_features']
+        #         self.num_features = cfg['num_features']
 
-            except yaml.YAMLError as exc:
-                print(exc)
+        #     except yaml.YAMLError as exc:
+        #         print(exc)
 
 
-    def __get_filename(self, p_filename:str, p_path:str=None) -> None:
+    def __get_filename(self, p_filename:str, p_path:str=None) -> str:
         '''
         Form and return a filename
         Input:
@@ -71,6 +95,7 @@ class Ingest_Data():
         logger.info(f"_-get-filename : {filename}")
         return filename
 
+
     def __read_file(self, filename:str) -> pd.DataFrame:
         '''
         read csv into panda framework
@@ -83,7 +108,7 @@ class Ingest_Data():
         return pd.read_csv(filename)
 
 
-    def train_model(self) -> bool:
+    def train_model(self) -> str:
         '''
         read in the files, combine, drop duplicates and save the file
 
@@ -94,6 +119,7 @@ class Ingest_Data():
             path of the output file
         '''
 
+        print("Train model class method")
         try:
             filename = self.__get_filename(self.in_file)
             df = self.__read_file(filename)
@@ -102,55 +128,65 @@ class Ingest_Data():
             logger.info(f"error reading file %s", err)
             raise
 
-        lr = LogisticRegression(self.C ,
-                                self.class_weight , 
-                                self.dual , 
-                                self.fit_intercept ,
-                                self.intercept_scaling , 
-                                self.l1_ratio , 
-                                self.max_iter ,
-                                self.multi_class , 
-                                self.n_jobs , 
-                                self.penalty ,
-                                self.random_state , 
-                                self.solver , 
-                                self.tol , 
-                                self.verbose ,
-                                self.warm_start )
-
-        X = df[self.num_features]
-        y = X.pop('exited')
-
-        model = lr.fit(X, y)
+        print(f"filename : {filename}")
+        try:
+            lr = LogisticRegression(C = self.C ,
+                                    class_weight =  self.class_weight , 
+                                    dual =  self.dual , 
+                                    fit_intercept = self.fit_intercept ,
+                                    intercept_scaling = self.intercept_scaling , 
+                                    l1_ratio =  self.l1_ratio , 
+                                    max_iter = self.max_iter ,
+                                    multi_class =  self.multi_class , 
+                                    n_jobs =  self.n_jobs , 
+                                    penalty = self.penalty ,
+                                    random_state =  self.random_state , 
+                                    solver =  self.solver , 
+                                    tol =  self.tol , 
+                                    verbose = self.verbose ,
+                                    warm_start = self.warm_start )
+        except Exception as err:
+            print(f"LR Error : {lr}")
 
         try:
-            os.mkdir(os.path.join(self.parent_folder, self.out_path))
+            print(f"num_features = {type(self.num_features)} \ n{self.num_features}")
+            X = df[self.num_features]
+            y = X.pop('exited')
+
+        except Exception as err:
+            print(f"dataframe error : {err}")
+            raise
+
+        print(f"y : {y.head()}")
+
+        print("fitting model")
+        model = lr.fit(X, y)
+
+        print("\ncreate directory\n")
+        try:
+            filename = self.parent_folder, self.out_path
+            print(f"filename : {filename}")
+            os.mkdir(os.path.join(filename))
 
         except Exception as err:
             # folder exists so we don't need to abort processing
             logger.info(f"train_model: error creating directory : %s ", err)
+            raise
 
 
+        out = self.__get_filename(self.out_model, self.out_path)
 
-        out = self.__get_filename(self.out_file, self.out_path)
 
-
-        print(f"training: out filename {out}")
+        logging.info(f"training: Saving model : {out}")
         try:
             pickle.dump(model, open(out, 'wb'))  
 
         except Exception as err:
-            print("error %s in creating outfile %s", err, out)
+            print(f"error %s in creating outfile %s", err, out)
             raise
 
 
-#       save model on the filesystem 
-        logging.info("training: Saving model metadata")
-        outmodel_file = self.__get_filename(self.out_model, self.out_path)
-
-
-
-        return True
+        return out
 
 
 def go(args):
@@ -162,13 +198,23 @@ def go(args):
 
     print("\n ")
 
-    # Download input artifact. This will also log that this script is using this
-    # particular version of the artifact
-    # artifact_local_path = run.use_artifact(args.input_artifact).file()
 
-    ######################
-    # YOUR CODE HERE     #
-    ######################
+    train_model = Train_Model(args)
+    
+    with mlflow.start_run():
+        print("inside mlflow_start_run")
+        print(f"inside go and in scope of mlflow.start_run")
+        
+        try:
+            path = train_model.train_model()
+
+            mlflow.log_param("out_filename", path)
+            mlflow.log_artifact(path)
+
+        except Exception as err:
+            logger.error(f"Train Model Error %s", err)
+            return False
+
 
     return True;
 

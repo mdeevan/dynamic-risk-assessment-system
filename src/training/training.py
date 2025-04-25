@@ -10,8 +10,7 @@ import yaml
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
-
-
+import pickle
 
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
@@ -26,6 +25,24 @@ class Ingest_Data():
         self.out_model = args.out_model
         self.parent_folder = "../../"
         self.num_features =""
+
+        lrp=args[0]
+        self.C  = lrp.C 
+        self.class_weight  = lrp.class_weight 
+        self.dual  = lrp.dual 
+        self.fit_intercept  = lrp.fit_intercept 
+        self.intercept_scaling = lrp.intercept_scaling  
+        self.l1_ratio  = lrp.l1_ratio 
+        self.max_iter  = lrp.max_iter 
+        self.multi_class = lrp.multi_class  
+        self.n_jobs   = lrp.n_jobs  
+        self.penalty  = lrp.penalty 
+        self.random_state   = lrp.random_state  
+        self.solver   = lrp.solver  
+        self.tol   = lrp.tol  
+        self.verbose  = lrp.verbose 
+        self.warm_start  = lrp.warm_start 
+
 
         with open("params.yml") as stream:
             try:
@@ -66,7 +83,7 @@ class Ingest_Data():
         return pd.read_csv(filename)
 
 
-    def train_model(self) -> str:
+    def train_model(self) -> bool:
         '''
         read in the files, combine, drop duplicates and save the file
 
@@ -85,24 +102,26 @@ class Ingest_Data():
             logger.info(f"error reading file %s", err)
             raise
 
+        lr = LogisticRegression(self.C ,
+                                self.class_weight , 
+                                self.dual , 
+                                self.fit_intercept ,
+                                self.intercept_scaling , 
+                                self.l1_ratio , 
+                                self.max_iter ,
+                                self.multi_class , 
+                                self.n_jobs , 
+                                self.penalty ,
+                                self.random_state , 
+                                self.solver , 
+                                self.tol , 
+                                self.verbose ,
+                                self.warm_start )
 
-        lr = LogisticRegression(C=1.0,
-                                class_weight=None, 
-                                dual=False, 
-                                fit_intercept=True,
-                                intercept_scaling=1, 
-                                l1_ratio=None, 
-                                max_iter=100,
-                                multi_class='warn', 
-                                n_jobs=None, 
-                                penalty='l2',
-                                random_state=0, 
-                                solver='liblinear', 
-                                tol=0.0001, 
-                                verbose=0,
-                                warm_start=False)
+        X = df[self.num_features]
+        y = X.pop('exited')
 
-
+        model = lr.fit(X, y)
 
         try:
             os.mkdir(os.path.join(self.parent_folder, self.out_path))
@@ -115,10 +134,10 @@ class Ingest_Data():
 
         out = self.__get_filename(self.out_file, self.out_path)
 
-        print(f"run-data-ingestion: out filename {out}")
+
+        print(f"training: out filename {out}")
         try:
-            df= df.drop_duplicates().reset_index()
-            df.to_csv(out, index=False)
+            pickle.dump(model, open(out, 'wb'))  
 
         except Exception as err:
             print("error %s in creating outfile %s", err, out)
@@ -131,7 +150,7 @@ class Ingest_Data():
 
 
 
-        return out
+        return True
 
 
 def go(args):

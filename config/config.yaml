@@ -2,6 +2,7 @@ main:
   project_name: dynamic risk assessment
   experiment_name: development
   steps: all
+  mlflow_logging: True
 ingestion:
   ingestion_path: "practicedata"
   # all files in the folder
@@ -10,7 +11,8 @@ ingestion:
   output_filename  : "finaldata.csv"
   ingested_data_path: "ingesteddata" 
   ingested_filename  : "finaldata.csv"
-  output_model_path: "practicemodels" 
+  # output_model_path: "practicemodels" 
+  prod_deployment_path: "practicemodels" 
   output_model_name: "trainedmodel.pkl"
   numeric_columns:  ["lastmonth_activity", "lastyear_activity", "number_of_employees"] 
   # parent_folder: "../../"
@@ -33,7 +35,6 @@ logistic_regression_params:
   intercept_scaling : 1 
   l1_ratio : None
   max_iter : 100
-  multi_class : 'warn' 
   n_jobs : None
   penalty : 'l2'
   random_state : 0 

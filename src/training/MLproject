@@ -4,7 +4,7 @@ conda_env: ../../config/environment.yml
 entry_points:
   main:
     parameters:
-
+# https://mlflow.org/docs/latest/model/signatures/
       in_path:
         description: folder containing for the source data  
         type: string
@@ -29,11 +29,17 @@ entry_points:
         description: list of logistic regression parameters to consider for model training
         type: array
 
+      mlflow_logging:
+        description: capture mlflow logging in dagshub  
+        type: bool
+        default: True  
+
     command: >-
         python training.py  --in_path {in_path} \
                             --in_file {in_file} \
                             --out_path {out_path} \
                             --out_model {out_model} \
                             --num_features {num_features} \
-                            --lr_params {lr_params}
+                            --lr_params {lr_params} \
+                            --mlflow_logging {mlflow_logging}
 

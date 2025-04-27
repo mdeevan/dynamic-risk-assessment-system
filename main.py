@@ -79,7 +79,39 @@ def go(cfg: DictConfig):
 
                     "in_path": cfg["ingestion"]["ingested_data_path"],
                     "in_file": cfg["ingestion"]["ingested_filename"],
-                    "out_path": cfg["ingestion"]["output_model_path"],
+                    "out_path": cfg["ingestion"]["prod_deployment_path"],
+                    "out_model": cfg["ingestion"]["output_model_name"],
+                    "num_features": cfg["num_features"],
+                    "lr_params": cfg["logistic_regression_params"][0],
+                    "mlflow_logging": cfg["main"]["mlflow_logging"]
+                },
+            )
+
+
+        #################################
+        #########  Diagnostics   ########
+        #################################
+        if "diagnostics" in active_steps:
+            print(f"inside main.py training ")
+            filename = os.path.join(
+                hydra.utils.get_original_cwd(), "src", "training"
+            )
+
+            print(
+                f'cfg["ingestion"]["output_filename"] :{cfg["ingestion"]["output_filename"]}'
+            )
+            print(f"filename : {filename}")
+            _ = mlflow.run(
+                uri=filename,
+                entry_point="main",
+                env_manager="conda",
+                parameters={
+                    #  out path and outfile are where the ingested file is stored, 
+                    # from previous 'ingestion' step
+
+                    "in_path": cfg["ingestion"]["ingested_data_path"],
+                    "in_file": cfg["ingestion"]["ingested_filename"],
+                    "out_path": cfg["ingestion"]["prod_deployment_path"],
                     "out_model": cfg["ingestion"]["output_model_name"],
                     "num_features": cfg["num_features"],
                     "lr_params": cfg["logistic_regression_params"][0]

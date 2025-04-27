@@ -13,6 +13,7 @@ from sklearn.linear_model import LogisticRegression
 import pickle
 import mlflow
 import json
+import ast
 
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
@@ -28,44 +29,65 @@ class Train_Model():
         self.parent_folder = "../../"
         self.num_features =""
 
+        print("\n training.py -> incoming:")
+        print(f"args.num_features :{type(args.num_features)} -> {args.num_features}")
+        print("\n")
+        print(f"args.lr_params : {type(args.lr_params)} -> {args.lr_params}")
+        print("\n")
 
-        nf=args.num_features.replace("'", '"')
-        print (f"type of nf: {type(nf)}")
-        print(f"nf: {nf}")
+        print("\n training.py -> conversion:")
+        
+        # num_features is a list parameter with string values but passed in as string.
+        # convering the string into a list with ast.literal_eval 
+        num_features = ast.literal_eval(args.num_features) 
+        print(f"args.num_features :{type(num_features)} -> {num_features}")
+        print("\n")
 
-        # nf = nf.replace("[","").replace("]","")
-        num_features = json.loads(nf)
+        # lr_params is a dictionary of mixed types but passed in as string.
+        # convering the string into a list with ast.literal_eval 
+        lr_params = ast.literal_eval(args.lr_params.replace("'None'", 'None'))
+        print(f"args.lr_params : {type(lr_params)} -> {lr_params}")
+        print("\n")
 
-        print (f"type of num_features {type(num_features)}")
-        print(f"num_features {num_features}")
+        # nf=args.num_features.replace("'", '"')
+        # print (f"type of nf: {type(nf)}")
+        # print(f"nf: {nf}")
 
-        # print(f"args : {args}")
-        # lr_params = args.lr_params
-        # print(f"lr_params {lr_params}")
-        # print(f"lr_params-type {type(lr_params)}")
+        # # nf = nf.replace("[","").replace("]","")
+        # self.num_features = json.loads(nf)
 
-        lrp = json.loads( args.lr_params.replace("'", '"' ).replace("True",'"True"').replace("False",'"False"') )
-        # lrp=args.lr_params
-        print(f"args -lrp {lrp}")
+        # print (f"type of num_features {type(self.num_features)}")
+        # print(f"num_features {self.num_features}")
 
-        print(f"lrp type {type(lrp)}")
-        print(f"args -lrp - C{lrp['C']}")
-        self.C  = lrp['C'] 
+        # # print(f"args : {args}")
+        # # lr_params = args.lr_params
+        # # print(f"lr_params {lr_params}")
+        # # print(f"lr_params-type {type(lr_params)}")
 
-        self.class_weight  = lrp['class_weight'] 
-        self.dual  = lrp['dual'] 
-        self.fit_intercept  = lrp['fit_intercept'] 
-        self.intercept_scaling = lrp['intercept_scaling']  
-        self.l1_ratio  = lrp['l1_ratio'] 
-        self.max_iter  = lrp['max_iter'] 
-        self.multi_class = lrp['multi_class']  
-        self.n_jobs   = lrp['n_jobs']  
-        self.penalty  = lrp['penalty'] 
-        self.random_state   = lrp['random_state']  
-        self.solver   = lrp['solver']  
-        self.tol   = lrp['tol']  
-        self.verbose  = lrp['verbose'] 
-        self.warm_start  = lrp['warm_start'] 
+        # lrp = json.loads( args.lr_params.replace("'", '"' ).replace("True",'"True"').replace("False",'"False"') )
+        # # lrp=args.lr_params
+        # print(f"args -lrp {lrp}")
+
+        # print(f"lrp type {type(lrp)}")
+        # print(f"args -lrp - C{lrp['C']}")
+
+        self.num_features = num_features
+        
+        self.C  = lr_params['C'] 
+        self.class_weight  = lr_params['class_weight'] 
+        self.dual  = lr_params['dual'] 
+        self.fit_intercept  = lr_params['fit_intercept'] 
+        self.intercept_scaling = lr_params['intercept_scaling']  
+        self.l1_ratio  = lr_params['l1_ratio'] 
+        self.max_iter  = lr_params['max_iter'] 
+        # self.multi_class = lr_params['multi_class']  
+        self.n_jobs   = lr_params['n_jobs']  
+        self.penalty  = lr_params['penalty'] 
+        self.random_state   = lr_params['random_state']  
+        self.solver   = lr_params['solver']  
+        self.tol   = lr_params['tol']  
+        self.verbose  = lr_params['verbose'] 
+        self.warm_start  = lr_params['warm_start'] 
 
 
         # with open("params.yml") as stream:
@@ -137,7 +159,6 @@ class Train_Model():
                                     intercept_scaling = self.intercept_scaling , 
                                     l1_ratio =  self.l1_ratio , 
                                     max_iter = self.max_iter ,
-                                    multi_class =  self.multi_class , 
                                     n_jobs =  self.n_jobs , 
                                     penalty = self.penalty ,
                                     random_state =  self.random_state , 
@@ -146,36 +167,40 @@ class Train_Model():
                                     verbose = self.verbose ,
                                     warm_start = self.warm_start )
         except Exception as err:
-            print(f"LR Error : {lr}")
+            logger.error(f"LR Error : {lr}")
 
         try:
-            print(f"num_features = {type(self.num_features)} \ n{self.num_features}")
+            print(f"num_features = {type(self.num_features)} \n {self.num_features}")
             X = df[self.num_features]
             y = X.pop('exited')
 
         except Exception as err:
-            print(f"dataframe error : {err}")
+            logger.error(f"dataframe error : {err}")
             raise
 
         print(f"y : {y.head()}")
 
-        print("fitting model")
-        model = lr.fit(X, y)
+        try:
+
+            print("fitting model")
+            model = lr.fit(X, y)
+        
+        except Exception as err:
+            logger.error(f"error model training : {err}")
+            raise
 
         print("\ncreate directory\n")
         try:
-            filename = self.parent_folder, self.out_path
-            print(f"filename : {filename}")
-            os.mkdir(os.path.join(filename))
+            folder_path = os.path.join(self.parent_folder, self.out_path)
+            print(f"folder_path : {folder_path}")
+            os.mkdir(folder_path)
 
         except Exception as err:
             # folder exists so we don't need to abort processing
             logger.info(f"train_model: error creating directory : %s ", err)
             raise
 
-
         out = self.__get_filename(self.out_model, self.out_path)
-
 
         logging.info(f"training: Saving model : {out}")
         try:
@@ -184,7 +209,6 @@ class Train_Model():
         except Exception as err:
             print(f"error %s in creating outfile %s", err, out)
             raise
-
 
         return out
 
@@ -201,22 +225,32 @@ def go(args):
 
     train_model = Train_Model(args)
     
-    with mlflow.start_run():
-        print("inside mlflow_start_run")
-        print(f"inside go and in scope of mlflow.start_run")
-        
-        try:
+
+    if args.mlflow_logging:
+        with mlflow.start_run():
+            print("inside mlflow_start_run")
+            print(f"inside go and in scope of mlflow.start_run")
+            
+            try:
+                path = train_model.train_model()
+
+                mlflow.log_param("out_filename", path)
+                mlflow.log_artifact(path)
+
+            except Exception as err:
+                logger.error(f"Train Model Error %s", err)
+                return False
+    else:
+        try: 
             path = train_model.train_model()
 
-            mlflow.log_param("out_filename", path)
-            mlflow.log_artifact(path)
-
         except Exception as err:
-            logger.error(f"Train Model Error %s", err)
+            logger.error(f"Train Model - w/o logging Error %s", err)
             return False
 
 
     return True;
+
 
 if __name__ == "__main__":
 
@@ -265,6 +299,12 @@ if __name__ == "__main__":
         required=False
     )
 
+    parser.add_argument(
+        "--mlflow_logging", 
+        type=bool,
+        help='logistic regression model tuning parameters',
+        required=True
+    )
 
     args = parser.parse_args()
 

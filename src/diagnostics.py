@@ -16,7 +16,7 @@ test_data_path = os.path.join(config['test_data_path'])
 def model_predictions():
     #read the deployed model and a test dataset, calculate predictions
     return #return value should be a list containing all predictions
-
+    
 ##################Function to get summary statistics
 def dataframe_summary():
     #calculate summary statistics here

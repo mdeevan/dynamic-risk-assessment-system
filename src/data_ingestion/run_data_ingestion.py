@@ -134,19 +134,28 @@ def go(args):
     # print("Env vars:", {k: v for k, v in os.environ.items() if "MLFLOW" in k or "DAGSHUB" in k})
 
     # mlflow.set_experiment("data-ingestion")
-    with mlflow.start_run():
-        print("inside mlflow_start_run")
-        print(f"inside go and in scope of mlflow.start_run")
-        
-        try:
+    if args.mlflow_logging:
+        with mlflow.start_run():
+            print("inside mlflow_start_run")
+            print(f"inside go and in scope of mlflow.start_run")
+            
+            try:
 
+                path = ingest_data.process_files()
+
+                mlflow.log_param("out_filename", args.out_file)
+                mlflow.log_artifact(path)
+
+            except Exception as err:
+                logger.error("Error ingesting data %s", err)
+    else:
+        try: 
+            logger.info("ingestion without logging")
             path = ingest_data.process_files()
 
-            mlflow.log_param("out_filename", args.out_file)
-            mlflow.log_artifact(path)
-
         except Exception as err:
-            logger.error("Error ingesting data %s", err)
+            logger.error(f"Ingestion - w/o logging Error %s", err)
+            return False
 
 
 
@@ -182,6 +191,13 @@ if __name__ == "__main__":
         "--out_file", 
         type=str,
         help='name of the outfile',
+        required=True
+    )
+
+    parser.add_argument(
+        "--mlflow_logging", 
+        type=bool,
+        help='mlflow logging enable or disabled',
         required=True
     )
 

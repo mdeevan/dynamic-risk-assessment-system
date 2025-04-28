@@ -14,6 +14,7 @@ import pickle
 import mlflow
 import json
 import ast
+import sys
 
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
@@ -28,6 +29,7 @@ class Train_Model():
         self.out_model = args.out_model
         self.parent_folder = "../../"
         self.num_features =""
+        self.mlflow_logging = args.mlflow_logging
 
         print("\n training.py -> incoming:")
         print(f"args.num_features :{type(args.num_features)} -> {args.num_features}")
@@ -226,7 +228,8 @@ def go(args):
     train_model = Train_Model(args)
     
 
-    if args.mlflow_logging:
+    print(f"args.mlflow_logging : {train_model.mlflow_logging}")
+    if train_model.mlflow_logging:
         with mlflow.start_run():
             print("inside mlflow_start_run")
             print(f"inside go and in scope of mlflow.start_run")
@@ -242,6 +245,7 @@ def go(args):
                 return False
     else:
         try: 
+            logger.info("training without logging")
             path = train_model.train_model()
 
         except Exception as err:
@@ -255,6 +259,12 @@ def go(args):
 if __name__ == "__main__":
 
     print("inside training.py")
+
+    print("\n\n\n")
+    for arg in sys.argv:
+        print(arg)
+
+    print("\n\n\n")
     parser = argparse.ArgumentParser(description="model training")
 
     parser.add_argument(
@@ -302,10 +312,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--mlflow_logging", 
         type=bool,
-        help='logistic regression model tuning parameters',
-        required=True
+        help='mlflow logging enable or disabled',
+        required=False
     )
 
     args = parser.parse_args()
+
+    print(f"inside training main -> {args}")
 
     go(args)

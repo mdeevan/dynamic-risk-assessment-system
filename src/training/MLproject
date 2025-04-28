@@ -31,8 +31,7 @@ entry_points:
 
       mlflow_logging:
         description: capture mlflow logging in dagshub  
-        type: bool
-        default: True  
+        type: boolean
 
     command: >-
         python training.py  --in_path {in_path} \

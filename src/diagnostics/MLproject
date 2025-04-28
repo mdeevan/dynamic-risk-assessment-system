@@ -6,13 +6,25 @@ entry_points:
     parameters:
 
       model_path:
-        description: ## ADD DESCRIPTION
+        description: path where model is stored
         type: string
 
        model_name:
-        description: ## ADD DESCRIPTION
+        description: name of the stored model
+        type: string
+
+       data_path_name:
+        description: folder containing the test data, all files in the folder will be processed
+        type: string
+
+       mlflow_logging:
+        description: Whether to log in dagshub or not
         type: string
 
 
     command: >-
-        python diagnostics.py  --model_path {model_path}  -- model_name { model_name} 
+        python diagnostics.py --model_path {model_path} \
+                              --model_name {model_name} \
+                              --data_path_name {data_path_name} \
+                              --mlflow_logging {mlflow_logging}
+

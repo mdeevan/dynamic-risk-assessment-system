@@ -15,6 +15,7 @@ ingestion:
   prod_deployment_path: "practicemodels" 
   output_model_name: "trainedmodel.pkl"
   numeric_columns:  ["lastmonth_activity", "lastyear_activity", "number_of_employees"] 
+  test_data_path: "testdata"
   # parent_folder: "../../"
 num_features:
 - lastmonth_activity

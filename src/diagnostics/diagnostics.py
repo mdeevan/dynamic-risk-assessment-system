@@ -9,7 +9,8 @@ import dagshub
 import mlflow
 import pandas as pd
 import pickle
-
+import ast
+import inspect
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
@@ -21,8 +22,12 @@ class Diagnostics():
         self.model_path_name = args.model_path_name
         self.model_file_name = args.model_file_name
         self.data_path_name =  args.data_path_name
+        self.test_prediction_output =  args.test_prediction_output
         self.mlflow_logging = args.mlflow_logging
         self.parent_folder = "../../"
+
+        num_features = ast.literal_eval(args.num_features) 
+        self.num_features = num_features
 
 
     def __get_filename(self, p_filename:str, p_path:str=None) -> str:
@@ -36,7 +41,7 @@ class Diagnostics():
             None
         '''
 
-        path = self.in_path if (p_path is None) else p_path
+        path = self.data_path_name if (p_path is None) else p_path
 
         filename = os.path.join(self.parent_folder, path, p_filename)
         logger.info(f"_-get-filename : {filename}")
@@ -55,68 +60,95 @@ class Diagnostics():
         return pd.read_csv(filename)
 
 
-    def run_diagnostics(self):
+    def run_diagnostics(self) -> str:
 
+# https://stackoverflow.com/questions/5067604/determine-function-name-from-within-that-function
+        # func_name = inspect.currentframe().f_back.f_code.co_name
+        func_name = inspect.currentframe().f_code.co_name
+
+        # load model
         # load model
         logging.info("Loading deployed model")
         model_loc = self.__get_filename(self.model_file_name, self.model_path_name)
+        try:
 
-        model = pickle.load(model_loc, 'rb')
+            logging.info(f"Loading deployed model %s", model_loc)
+            file = open(model_loc, 'rb')
+            model = pickle.load(file)
+
+        except Exception as err:
+            logging.error(f"%s: error loading model %s", func_name, err)
+            raise
+            logging.error(f"%s: error loading model %s", func_name, err)
 
         # load dataset
-        df = pd.DataFrame()
-        test_data_folder = os.path.join(self.parent_folder, self.data_path_name)
-        files = [f for f in os.listdir(test_data_folder) if os.path.isfile(self.__get_filename(f))]
+        logging.info("Loading test data")
+        try:
 
-        for file in files:
-            filename = self.__get_filename(file)            
+            df = pd.DataFrame()
+            test_data_folder = os.path.join(self.parent_folder, self.data_path_name)
+            print(f"test data folder: {test_data_folder} , parent={self.parent_folder}, data folder={self.data_path_name}")
+            files = [f for f in os.listdir(test_data_folder) if os.path.isfile(self.__get_filename(f))]
 
-            df_new = self.__read_file(filename)
-            df = pd.concat([df, df_new], axis=0)            
+            for file in files:
+                filename = self.__get_filename(file)            
+
+                df_new = self.__read_file(filename)
+                df = pd.concat([df, df_new], axis=0)         
+   
+        except Exception as err:
+            logging.error(f"%s: error reading test data %s", func_name, err)
+            raise
 
         # make predictions
-        if df is not None:
-            X = df[self.num_features]
-            y = X.pop('exited')            
 
+        logging.info("Making predictions")
+        try:
+            y_pred = None
+            if df is not None:
+                X = df[self.num_features]
+                y = X.pop('exited')            
 
-            y_pred = model.predict(X)
-    
+                # print(X.head())
+                y_pred = model.predict(X)
 
+                predict_output = self.__get_filename(p_path=self.data_path_name, p_filename=self.test_prediction_output)
+                pd.DataFrame(zip(y, y_pred.tolist()), columns=['target','predicted']).to_csv(predict_output, index=False)
 
+        except Exception as err:
+            logging.error(f"%s: error making prediction %s", func_name, err)
+            raise
 
-        return True
+        return predict_output
 
 
 def go(args):
 
     diagnostics = Diagnostics(args)
 
-
-    if Diagnostics.mlflow_logging:
+    if diagnostics.mlflow_logging:
         with mlflow.start_run():
             print("inside mlflow_start_run")
             print(f"inside go and in scope of mlflow.start_run")
             
             try:
                 path = diagnostics.run_diagnostics()
+                print(f"y_pred : %s", path)
 
-                mlflow.log_param("out_filename", path)
                 mlflow.log_artifact(path)
 
             except Exception as err:
-                logger.error(f"Train Model Error %s", err)
+                logger.error(f"Error running diagnostics %s", err)
                 return False
     else:
         try: 
             logger.info("training without logging")
             path = diagnostics.run_diagnostics()
+            mlflow.log_artifact(path)
 
         except Exception as err:
-            logger.error(f"Train Model - w/o logging Error %s", err)
+            logger.error(f"Error running diagnostics w/o logging %s", err)
             return False
-
-
 
 
 if __name__ == "__main__":
@@ -125,22 +157,28 @@ if __name__ == "__main__":
 
 
     parser.add_argument(
-        "--model_path", 
+        "--model_path_name", 
         type=str,
         help="path where model is stored",
         required=True
     )
 
     parser.add_argument(
-        "--model_name", 
+        "--model_file_name", 
         type=str,
-        help="name of the model, stored under model_path",
+        help="name of the model, stored under model_file_name",
         required=True
     )
     parser.add_argument(
         "--data_path_name", 
         type=str,
         help="path where data is stored ",
+        required=True
+    )
+    parser.add_argument(
+        "--test_prediction_output", 
+        type=str,
+        help="output from predictions ",
         required=True
     )
     parser.add_argument(

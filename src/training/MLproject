@@ -1,10 +1,10 @@
 name: training
 conda_env: ../../config/environment.yml
 
+# https://mlflow.org/docs/latest/model/signatures/
 entry_points:
   main:
     parameters:
-# https://mlflow.org/docs/latest/model/signatures/
       in_path:
         description: folder containing for the source data  
         type: string

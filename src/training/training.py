@@ -185,7 +185,7 @@ class Train_Model():
         try:
 
             print("fitting model")
-            model = lr.fit(X, y)
+            model = lr.fit(X, y)    
         
         except Exception as err:
             logger.error(f"error model training : {err}")

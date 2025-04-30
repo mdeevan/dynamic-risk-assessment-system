@@ -4,32 +4,36 @@ conda_env: ../../config/environment.yml
 entry_points:
   main:
     parameters:
-
-      model_path:
+      model_path_name:
         description: path where model is stored
         type: string
 
-       model_name:
+      model_file_name:
         description: name of the stored model
         type: string
 
-       data_path_name:
+      data_path_name:
         description: folder containing the test data, all files in the folder will be processed
+        type: string
+
+      test_prediction_output:
+        description: prediction output file name
         type: string
 
       num_features:
         description: list of numeric features to consider for model training
         type: array
 
-       mlflow_logging:
+      mlflow_logging:
         description: Whether to log in dagshub or not
         type: string
 
 
     command: >-
-        python diagnostics.py --model_path {model_path} \
-                              --model_name {model_name} \
+        python diagnostics.py --model_path_name {model_path_name} \
+                              --model_file_name {model_file_name} \
                               --data_path_name {data_path_name} \
+                              --test_prediction_output {test_prediction_output} \
                               --num_features {num_features} \
                               --mlflow_logging {mlflow_logging}
 

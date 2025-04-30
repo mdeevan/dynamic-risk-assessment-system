@@ -2,11 +2,13 @@
 """
 Make predictions on test data with the newly created model to diagnose problem and evaluate results
 """
+import os
 import argparse
 import logging
 import dagshub
 import mlflow
 import pandas as pd
+import pickle
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
@@ -20,6 +22,7 @@ class Diagnostics():
         self.model_file_name = args.model_file_name
         self.data_path_name =  args.data_path_name
         self.mlflow_logging = args.mlflow_logging
+        self.parent_folder = "../../"
 
 
     def __get_filename(self, p_filename:str, p_path:str=None) -> str:
@@ -55,10 +58,32 @@ class Diagnostics():
     def run_diagnostics(self):
 
         # load model
+        logging.info("Loading deployed model")
+        model_loc = self.__get_filename(self.model_file_name, self.model_path_name)
+
+        model = pickle.load(model_loc, 'rb')
 
         # load dataset
+        df = pd.DataFrame()
+        test_data_folder = os.path.join(self.parent_folder, self.data_path_name)
+        files = [f for f in os.listdir(test_data_folder) if os.path.isfile(self.__get_filename(f))]
+
+        for file in files:
+            filename = self.__get_filename(file)            
+
+            df_new = self.__read_file(filename)
+            df = pd.concat([df, df_new], axis=0)            
 
         # make predictions
+        if df is not None:
+            X = df[self.num_features]
+            y = X.pop('exited')            
+
+
+            y_pred = model.predict(X)
+    
+
+
 
         return True
 
@@ -101,18 +126,35 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--model_path", 
-        type=## INSERT TYPE HERE: str, float or int,
-        help=## INSERT DESCRIPTION HERE,
+        type=str,
+        help="path where model is stored",
         required=True
     )
 
     parser.add_argument(
-        "-- model_name", 
-        type=## INSERT TYPE HERE: str, float or int,
-        help=## INSERT DESCRIPTION HERE,
+        "--model_name", 
+        type=str,
+        help="name of the model, stored under model_path",
         required=True
     )
-
+    parser.add_argument(
+        "--data_path_name", 
+        type=str,
+        help="path where data is stored ",
+        required=True
+    )
+    parser.add_argument(
+        "--num_features", 
+        type=str,
+        help='modeling parameters',
+        required=False
+    )
+    parser.add_argument(
+        "--mlflow_logging", 
+        type=bool,
+        help='mlflow logging enable or disabled',
+        required=False
+    )
 
     args = parser.parse_args()
 

@@ -62,11 +62,15 @@ def __run_diagnostics(filename, cfg):
             "model_path": cfg["ingestion"]["prod_deployment_path"],
             "model_name": cfg["ingestion"]["output_model_name"],
             "data_path_name": cfg["ingestion"]["output_model_name"]
+            "num_features": cfg["num_features"],
             "mlflow_logging": cfg["main"]["mlflow_logging"]
         },
     )
 
-
+# TO-OD - mlflow_logging flag is coming in as boolean and argparse consider it positive
+# when the flag is passed, and ignores the values pssed to the attribute
+# Change the type to string OR
+# refactor and replace argparse with click, which provides additional types
 
 
 # This automatically reads in the configuration

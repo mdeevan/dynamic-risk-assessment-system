@@ -1,0 +1,33 @@
+name: scoring_model
+conda_env: ../../config/environment.yml
+
+entry_points:
+  main:
+    parameters:
+
+      model_path_name:
+        description: Folder containing the model, score will be store in same folder
+        type: string
+
+      report_folder:
+        description: folder where the predictions output it stored
+        type: string
+
+      prediction_output:
+        description: prediction filename
+        type: string
+
+      score_filename:
+        description: filename to store the score in
+        type: string
+
+      mlflow_logging:
+        description: Whether to log in dagshub or not
+        type: string
+
+    command: >-
+        python scoring.py --model_path_name {model_path_name} \
+                          --report_folder {report_folder} \
+                          --prediction_output {prediction_output} \
+                          --score_filename {score_filename} \
+                          --mlflow_logging {mlflow_logging}

@@ -53,6 +53,23 @@ def __run_training(filename, cfg):
         },
     )
 
+def __run_scoring_model(filename, cfg):
+    return mlflow.run(
+        uri=filename,
+        entry_point="main",
+        env_manager="conda",
+        parameters={
+            #  out path and outfile are where the ingested file is stored, 
+            # from previous 'ingestion' step
+
+            "model_path_name": cfg["ingestion"]["prod_deployment_path"],
+            "report_folder": cfg["ingestion"]["report_folder"],
+            "prediction_output": cfg["ingestion"]["prediction_output"],
+            "score_filename": cfg["ingestion"]["score_filename"],
+            "mlflow_logging": cfg["main"]["mlflow_logging"]
+        },
+    )
+
 def __run_diagnostics(filename, cfg):
     return mlflow.run(
         uri=filename,
@@ -106,22 +123,6 @@ def go(cfg: DictConfig):
 
             _ = __run_ingestion(filename, cfg)
 
-            # _ = mlflow.run(
-            #     uri=filename,
-            #     entry_point="main",
-            #     # version='main',
-            #     # env_manager="virtualenv",
-            #     env_manager="conda",
-            #     parameters={
-            #         "in_path": cfg["ingestion"]["ingestion_path"],  
-            #         "in_file": cfg["ingestion"]["ingestion_filename"],
-            #         "out_path": cfg["ingestion"]["ingested_data_path"],
-            #         "out_file": cfg["ingestion"]["ingested_filename"],
-            #         "mlflow_logging": cfg["main"]["mlflow_logging"]
-            #         # "modeling": cfg["modeling"]
-            #     },
-            # )
-
         ##############################
         #########  Training   ########
         ##############################
@@ -138,23 +139,23 @@ def go(cfg: DictConfig):
 
             _ = __run_training(filename, cfg)
 
-            # _ = mlflow.run(
-            #     uri=filename,
-            #     entry_point="main",
-            #     env_manager="conda",
-            #     parameters={
-            #         #  out path and outfile are where the ingested file is stored, 
-            #         # from previous 'ingestion' step
 
-            #         "in_path": cfg["ingestion"]["ingested_data_path"],
-            #         "in_file": cfg["ingestion"]["ingested_filename"],
-            #         "out_path": cfg["ingestion"]["prod_deployment_path"],
-            #         "out_model": cfg["ingestion"]["output_model_name"],
-            #         "num_features": cfg["num_features"],
-            #         "lr_params": cfg["logistic_regression_params"][0],
-            #         "mlflow_logging": cfg["main"]["mlflow_logging"]
-            #     },
-            # )
+
+        #################################
+        #########  Score Model   ########
+        #################################
+        if "scoring" in active_steps:
+            print(f"inside main.py scoring ")
+            filename = os.path.join(
+                hydra.utils.get_original_cwd(), "src", "scoring_model"
+            )
+
+            print(
+                f'cfg["ingestion"]["output_filename"] :{cfg["ingestion"]["output_filename"]}'
+            )
+            print(f"filename : {filename}")
+
+            _ = __run_scoring_model(filename, cfg)
 
 
         #################################

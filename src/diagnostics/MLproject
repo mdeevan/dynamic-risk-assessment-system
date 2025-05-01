@@ -20,7 +20,7 @@ entry_points:
         description: folder to store the reports and results
         type: string
 
-      test_prediction_output:
+      prediction_output:
         description: prediction output file name
         type: string
 
@@ -38,7 +38,7 @@ entry_points:
                               --model_file_name {model_file_name} \
                               --data_path_name {data_path_name} \
                               --report_folder {report_folder} \
-                              --test_prediction_output {test_prediction_output} \
+                              --prediction_output {prediction_output} \
                               --num_features {num_features} \
                               --mlflow_logging {mlflow_logging}
 

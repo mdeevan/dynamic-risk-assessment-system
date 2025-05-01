@@ -17,7 +17,8 @@ ingestion:
   numeric_columns:  ["lastmonth_activity", "lastyear_activity", "number_of_employees"] 
   test_data_path: "testdata"
   report_folder: "report"
-  test_prediction_output: "predictions.csv"
+  prediction_output: "predictions.csv"
+  score_filename: "latestscore.txt"
   # parent_folder: "../../"
 num_features:
 - lastmonth_activity

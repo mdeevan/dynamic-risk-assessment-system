@@ -23,7 +23,7 @@ class Diagnostics():
         self.model_file_name = args.model_file_name
         self.data_path_name =  args.data_path_name
         self.report_folder =  args.report_folder
-        self.test_prediction_output =  args.test_prediction_output
+        self.prediction_output =  args.prediction_output
         self.mlflow_logging = args.mlflow_logging
         self.parent_folder = "../../"
 
@@ -130,7 +130,7 @@ class Diagnostics():
                                     self.report_folder)
 
                 predict_output = self.__get_filename(p_path=self.report_folder, 
-                                                     p_filename=self.test_prediction_output)
+                                                     p_filename=self.prediction_output)
 
                 # save prediction result in the same folder as the folder
                 pd.DataFrame(zip(y, y_pred.tolist()), 
@@ -204,7 +204,7 @@ if __name__ == "__main__":
         required=True
     )
     parser.add_argument(
-        "--test_prediction_output", 
+        "--prediction_output", 
         type=str,
         help="output from predictions ",
         required=True

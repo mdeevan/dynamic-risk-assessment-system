@@ -16,6 +16,7 @@ ingestion:
   output_model_name: "trainedmodel.pkl"
   numeric_columns:  ["lastmonth_activity", "lastyear_activity", "number_of_employees"] 
   test_data_path: "testdata"
+  report_folder: "report"
   test_prediction_output: "predictions.csv"
   # parent_folder: "../../"
 num_features:

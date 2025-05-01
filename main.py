@@ -62,6 +62,7 @@ def __run_diagnostics(filename, cfg):
             "model_path_name": cfg["ingestion"]["prod_deployment_path"],
             "model_file_name": cfg["ingestion"]["output_model_name"],
             "data_path_name" : cfg["ingestion"]["test_data_path"],
+            "report_folder" : cfg["ingestion"]["report_folder"],
             "test_prediction_output" : cfg["ingestion"]["test_prediction_output"],
             "num_features": cfg["num_features"],
             "mlflow_logging": cfg["main"]["mlflow_logging"]

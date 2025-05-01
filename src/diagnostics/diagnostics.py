@@ -22,6 +22,7 @@ class Diagnostics():
         self.model_path_name = args.model_path_name
         self.model_file_name = args.model_file_name
         self.data_path_name =  args.data_path_name
+        self.report_folder =  args.report_folder
         self.test_prediction_output =  args.test_prediction_output
         self.mlflow_logging = args.mlflow_logging
         self.parent_folder = "../../"
@@ -47,6 +48,19 @@ class Diagnostics():
         logger.info(f"_-get-filename : {filename}")
         return filename
 
+
+    def __make_dir(self, p_parent:str, p_folder:str) -> bool:
+
+        parent = self.parent_folder if p_parent is None else p_parent
+        folder = self.report_folder if p_folder is None else p_folder
+
+        try:
+            folder_name = os.path.join(parent, folder)
+            os.mkdir(folder_name)
+
+        except Exception as err:
+            logging.info(f"folder already exists : %s", folder_name)
+            raise
 
     def __read_file(self, filename:str) -> pd.DataFrame:
         '''
@@ -112,8 +126,16 @@ class Diagnostics():
                 # print(X.head())
                 y_pred = model.predict(X)
 
-                predict_output = self.__get_filename(p_path=self.data_path_name, p_filename=self.test_prediction_output)
-                pd.DataFrame(zip(y, y_pred.tolist()), columns=['target','predicted']).to_csv(predict_output, index=False)
+                _ = self.__make_dir(self.parent_folder,
+                                    self.report_folder)
+
+                predict_output = self.__get_filename(p_path=self.report_folder, 
+                                                     p_filename=self.test_prediction_output)
+
+                # save prediction result in the same folder as the folder
+                pd.DataFrame(zip(y, y_pred.tolist()), 
+                             columns=['target','predicted']
+                             ).to_csv(predict_output, index=False)
 
         except Exception as err:
             logging.error(f"%s: error making prediction %s", func_name, err)
@@ -173,6 +195,12 @@ if __name__ == "__main__":
         "--data_path_name", 
         type=str,
         help="path where data is stored ",
+        required=True
+    )
+    parser.add_argument(
+        "--report_folder", 
+        type=str,
+        help="folder for reports and results ",
         required=True
     )
     parser.add_argument(

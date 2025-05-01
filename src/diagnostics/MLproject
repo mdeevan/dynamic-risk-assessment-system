@@ -16,6 +16,10 @@ entry_points:
         description: folder containing the test data, all files in the folder will be processed
         type: string
 
+      report_folder:
+        description: folder to store the reports and results
+        type: string
+
       test_prediction_output:
         description: prediction output file name
         type: string
@@ -33,6 +37,7 @@ entry_points:
         python diagnostics.py --model_path_name {model_path_name} \
                               --model_file_name {model_file_name} \
                               --data_path_name {data_path_name} \
+                              --report_folder {report_folder} \
                               --test_prediction_output {test_prediction_output} \
                               --num_features {num_features} \
                               --mlflow_logging {mlflow_logging}

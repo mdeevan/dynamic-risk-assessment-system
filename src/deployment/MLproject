@@ -1,0 +1,43 @@
+name: production_deployment
+conda_env: ../../config/environment.yml
+
+entry_points:
+  main:
+    parameters:
+
+      model_path_name:
+        description: path where model is stored
+        type: string
+
+      output_model_name:
+        description: name of the model
+        type: string
+
+      score_filename:
+        description: score filenameN
+        type: string
+
+      ingested_data_path:
+        description: path where data used for training is stored
+        type: string
+
+      ingested_filename:
+        description: filename of the file used in training
+        type: string
+
+      prod_deployment_path:
+        description: production deployment path
+        type: string
+
+      mlflow_logging:
+        description: mlflow logging enable or disabled
+        type: string
+
+    command: >-
+        python deployment.py --model_path_name {model_path_name} \
+                             --output_model_name {output_model_name} \
+                             --score_filename {score_filename} \
+                             --ingested_data_path {ingested_data_path} \
+                             --ingested_filename {ingested_filename} \
+                             --prod_deployment_path {prod_deployment_path} \
+                             --mlflow_logging {mlflow_logging}

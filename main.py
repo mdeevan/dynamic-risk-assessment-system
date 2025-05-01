@@ -45,7 +45,7 @@ def __run_training(filename, cfg):
 
             "in_path": cfg["ingestion"]["ingested_data_path"],
             "in_file": cfg["ingestion"]["ingested_filename"],
-            "out_path": cfg["ingestion"]["prod_deployment_path"],
+            "out_path": cfg["ingestion"]["output_model_path"],
             "out_model": cfg["ingestion"]["output_model_name"],
             "num_features": cfg["num_features"],
             "lr_params": cfg["logistic_regression_params"][0],
@@ -62,10 +62,26 @@ def __run_scoring_model(filename, cfg):
             #  out path and outfile are where the ingested file is stored, 
             # from previous 'ingestion' step
 
-            "model_path_name": cfg["ingestion"]["prod_deployment_path"],
+            "model_path_name": cfg["ingestion"]["output_model_path"],
             "report_folder": cfg["ingestion"]["report_folder"],
             "prediction_output": cfg["ingestion"]["prediction_output"],
             "score_filename": cfg["ingestion"]["score_filename"],
+            "mlflow_logging": cfg["main"]["mlflow_logging"]
+        },
+    )
+
+def __run_production_deployment(filename, cfg):
+    return mlflow.run(
+        uri=filename,
+        entry_point="main",
+        env_manager="conda",
+        parameters={
+            "model_path_name": cfg["ingestion"]["output_model_path"],
+            "output_model_name": cfg["ingestion"]["output_model_name"],
+            "score_filename" : cfg["ingestion"]["score_filename"],
+            "ingested_data_path" : cfg["ingestion"]["ingested_data_path"],
+            "ingested_filename" : cfg["ingestion"]["ingested_filename"],
+            "prod_deployment_path": cfg["ingestion"]["prod_deployment_path"],
             "mlflow_logging": cfg["main"]["mlflow_logging"]
         },
     )
@@ -156,6 +172,23 @@ def go(cfg: DictConfig):
             print(f"filename : {filename}")
 
             _ = __run_scoring_model(filename, cfg)
+
+
+        ###########################################
+        #########  Production deployment   ########
+        ###########################################
+        if "deployment" in active_steps:
+            print(f"inside main.py production deployment ")
+            filename = os.path.join(
+                hydra.utils.get_original_cwd(), "src", "deployment"
+            )
+
+            print(
+                f'cfg["ingestion"]["output_filename"] :{cfg["ingestion"]["output_filename"]}'
+            )
+            print(f"filename : {filename}")
+
+            _ = __run_production_deployment(filename, cfg)
 
 
         #################################

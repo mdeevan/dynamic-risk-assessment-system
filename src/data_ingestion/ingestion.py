@@ -3,12 +3,16 @@
 ingest data from input folder, combine and save to an output folder
 """
 import os
+import sys
 import pandas as pd
 import argparse
 import logging
 import dagshub
 import mlflow
 from datetime import datetime
+
+sys.path.append("../../")
+from lib import utilities
 
 # logging.basicConfig(level=logging.DEBUG, format="%(asctime)-15s %(message)s")
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
@@ -30,33 +34,33 @@ class Ingest_Data():
         self.parent_folder = "../../"
 
 
-    def __get_filename(self, p_filename:str, p_path:str=None) -> None:
-        '''
-        Form and return a filename
-        Input:
-                    p_filename : str - filename 
-            p_path : str - path where the filename is stored/created
+    # def __get_filename(self, p_filename:str, p_path:str=None) -> None:
+    #     '''
+    #     Form and return a filename
+    #     Input:
+    #                 p_filename : str - filename 
+    #         p_path : str - path where the filename is stored/created
 
-        return:
-            None
-        '''
+    #     return:
+    #         None
+    #     '''
 
-        path = self.ingestion_path if (p_path is None) else p_path
+    #     path = self.ingestion_path if (p_path is None) else p_path
 
-        filename = os.path.join(self.parent_folder, path, p_filename)
-        print(f"_-get-filename : {filename}")
-        return filename
+    #     filename = os.path.join(self.parent_folder, path, p_filename)
+    #     print(f"_-get-filename : {filename}")
+    #     return filename
 
-    def __read_file(self, filename:str) -> pd.DataFrame:
-        '''
-        read csv into panda framework
+    # def __read_file(self, filename:str) -> pd.DataFrame:
+    #     '''
+    #     read csv into panda framework
 
-        INPUT:
-            filename : csv files to read
-        RETURN:
-            pd.DataFrme : panda dataframe
-        '''
-        return pd.read_csv(filename)
+    #     INPUT:
+    #         filename : csv files to read
+    #     RETURN:
+    #         pd.DataFrme : panda dataframe
+    #     '''
+    #     return pd.read_csv(filename)
 
     def process_files(self) -> str:
         '''
@@ -78,37 +82,45 @@ class Ingest_Data():
 
                 source_folder = os.path.join(self.parent_folder, self.ingestion_path)
 
-                files = [f for f in os.listdir(source_folder) if os.path.isfile(self.__get_filename(f))]
+                # files = [f for f in os.listdir(source_folder) if os.path.isfile(self.__get_filename(f))]
+                files = [f for f in os.listdir(source_folder) 
+                         if os.path.isfile(utilities.get_filename(f))]
 
                 print(f"filename : {files}")
 
                 for file in files:
-                    filename = self.__get_filename(file)
+                    # filename = self.__get_filename(file)
+                    filename = utilities.get_filename(file)
 
                     print(f"run-data-ingestion: filename : {filename}")
-                    df_new = self.__read_file(filename)
+                    # df_new = self.__read_file(filename)
+                    df_new = utilities.read_file(filename)
                     df = pd.concat([df, df_new], axis=0)
             else:
                 files.append(self.ingestion_filename)
 
                 print(f"run-data-ingestion: filename : {self.ingestion_filename}")
-                filename = self.__get_filename(self.ingestion_filename)
+                # filename = self.__get_filename(self.ingestion_filename)
+                filename = utilities.get_filename(self.ingestion_filename)
 
-                df = self.__read_file(filename)
+                # df = self.__read_file(filename)
+                df = utilities.read_file(filename)
     
         except Exception as err:
             print("error reading file %s", err)
             raise
 
         try:
-            os.mkdir(os.path.join(self.parent_folder, self.out_path))
+            # os.mkdir(os.path.join(self.parent_folder, self.out_path))
+            utilities.make_dir(self.parent_folder, self.out_path)
 
         except Exception as err:
             # folder exists so we don't need to abort processing
             logger.info("error creating directory : %s ", err)
 
 
-        out = self.__get_filename(self.out_file, self.out_path)
+        # out = self.__get_filename(self.out_file, self.out_path)
+        out = utilities.get_filename(self.out_file, self.out_path)
 
         print(f"run-data-ingestion: out filename {out}")
         try:
@@ -121,12 +133,18 @@ class Ingest_Data():
 
 
         logging.info("Saving ingested metadata")
-        outlog_file = self.__get_filename(self.ingested_files_log, self.out_path)
+        # outlog_file = self.__get_filename(self.ingested_files_log, self.out_path)
+        outlog_file = utilities.get_filename(self.ingested_files_log, self.out_path)
         with open(outlog_file, "w") as f:
-            f.write(f"Ingestion date: {datetime.now().strftime('%m/%d/%Y %H:%M:%S')}\n")
+            f.write("date, folder, file\n")
+            exec_date = datetime.now().strftime('%m/%d/%Y %H:%M:%S')
+            # f.write(f"Ingestion date: {datetime.now().strftime('%m/%d/%Y %H:%M:%S')}\n")
             for file in files:
-                f.write(self.__get_filename(file)+"\n")
+                # path, file = self.__get_filename(file).rsplit("/", 1)
+                path, file = utilities.get_filename(file).rsplit("/", 1)
+                # f.write(self.__get_filename(file)+"\n")
 
+                f.write(f"{exec_date},{path},{file}\n")
 
         return out
 
@@ -211,6 +229,13 @@ if __name__ == "__main__":
         type=bool,
         help='mlflow logging enable or disabled',
         required=True
+    )
+    parser.add_argument(
+        "--diagnostic", 
+        type=bool,
+        help='is ingestion for diagnostics?',
+        default=False,
+        required=False
     )
 
     args = parser.parse_args()

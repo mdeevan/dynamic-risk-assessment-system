@@ -12,8 +12,12 @@ entry_points:
         description: name of the stored model
         type: string
 
-      data_path_name:
+      data_folder:
         description: folder containing the test data, all files in the folder will be processed
+        type: string
+
+      data_files:
+        description: data files to process
         type: string
 
       report_folder:
@@ -24,6 +28,10 @@ entry_points:
         description: prediction output file name
         type: string
 
+      score_filename:
+        description: score filename
+        type: string
+
       num_features:
         description: list of numeric features to consider for model training
         type: array
@@ -32,13 +40,14 @@ entry_points:
         description: Whether to log in dagshub or not
         type: string
 
-
     command: >-
         python diagnostics.py --model_path_name {model_path_name} \
                               --model_file_name {model_file_name} \
-                              --data_path_name {data_path_name} \
+                              --data_folder {data_folder} \
+                              --data_files {data_files} \
                               --report_folder {report_folder} \
                               --prediction_output {prediction_output} \
+                              --score_filename {score_filename} \
                               --num_features {num_features} \
                               --mlflow_logging {mlflow_logging}
 

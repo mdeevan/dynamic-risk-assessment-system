@@ -29,6 +29,7 @@ class Production_Deployment():
 
         self.ingested_data_path   = args.ingested_data_path
         self.ingested_filename    = args.ingested_filename
+        self.ingested_files_log   = args.ingested_files_log
 
         self.prod_deployment_path =  args.prod_deployment_path
 
@@ -96,9 +97,13 @@ class Production_Deployment():
         ingested_file = self.__get_filename(p_path=self.ingested_data_path,
                                             p_filename=self.ingested_filename )
 
+        ingested_files_log = self.__get_filename(p_path=self.ingested_data_path,
+                                            p_filename=self.ingested_files_log )
+
         files_to_copy.append(model_file)
         files_to_copy.append(score_file)
         files_to_copy.append(ingested_file)
+        files_to_copy.append(ingested_files_log)
 
         try:
             for file in files_to_copy:
@@ -175,6 +180,13 @@ if __name__ == "__main__":
         "--ingested_filename", 
         type=str,
         help="filename of the file used in training",
+        required=True
+    )
+
+    parser.add_argument(
+        "--ingested_files_log", 
+        type=str,
+        help="log file with the list of files ingested",
         required=True
     )
 

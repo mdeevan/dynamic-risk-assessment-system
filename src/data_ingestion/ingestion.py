@@ -19,11 +19,16 @@ logger = logging.getLogger()
 class Ingest_Data():
 
     def __init__(self, args):
-        self.in_path = args.in_path
-        self.in_file = args.in_file
+        self.ingestion_path = args.ingestion_path
+        self.ingestion_filename = args.ingestion_filename
         self.out_path = args.out_path
         self.out_file = args.out_file
+
+        self.ingested_files_log =  args.ingested_files_log
+        self.mlflow_logging = args.mlflow_logging
+
         self.parent_folder = "../../"
+
 
     def __get_filename(self, p_filename:str, p_path:str=None) -> None:
         '''
@@ -36,7 +41,7 @@ class Ingest_Data():
             None
         '''
 
-        path = self.in_path if (p_path is None) else p_path
+        path = self.ingestion_path if (p_path is None) else p_path
 
         filename = os.path.join(self.parent_folder, path, p_filename)
         print(f"_-get-filename : {filename}")
@@ -68,10 +73,10 @@ class Ingest_Data():
         # parent_folder = "../"
         files = []
         try:
-            if (self.in_file == "*"):
-                print(f"\nrun-data-ingestion: self.infile {self.in_file}")
+            if (self.ingestion_filename == "*"):
+                print(f"\nrun-data-ingestion: self.infile {self.ingestion_filename}")
 
-                source_folder = os.path.join(self.parent_folder, self.in_path)
+                source_folder = os.path.join(self.parent_folder, self.ingestion_path)
 
                 files = [f for f in os.listdir(source_folder) if os.path.isfile(self.__get_filename(f))]
 
@@ -84,10 +89,10 @@ class Ingest_Data():
                     df_new = self.__read_file(filename)
                     df = pd.concat([df, df_new], axis=0)
             else:
-                files.append(self.in_file)
+                files.append(self.ingestion_filename)
 
-                print(f"run-data-ingestion: filename : {self.in_file}")
-                filename = self.__get_filename(self.in_file)
+                print(f"run-data-ingestion: filename : {self.ingestion_filename}")
+                filename = self.__get_filename(self.ingestion_filename)
 
                 df = self.__read_file(filename)
     
@@ -116,9 +121,9 @@ class Ingest_Data():
 
 
         logging.info("Saving ingested metadata")
-        outlog_file = self.__get_filename("ingestedfiles.txt", self.out_path)
+        outlog_file = self.__get_filename(self.ingested_files_log, self.out_path)
         with open(outlog_file, "w") as f:
-            f.write(f"Ingestion date: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n")
+            f.write(f"Ingestion date: {datetime.now().strftime('%m/%d/%Y %H:%M:%S')}\n")
             for file in files:
                 f.write(self.__get_filename(file)+"\n")
 
@@ -167,14 +172,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="ingest data from the input folder")
 
     parser.add_argument(
-        "--in_path", 
+        "--ingestion_path", 
         type=str, 
         help='path to the data file for ingestion',  
         required=True
     )
 
     parser.add_argument(
-        "--in_file", 
+        "--ingestion_filename", 
         type=str,
         help='filename to ingest, asterisk (*) means all files in the folder', 
         required=True
@@ -191,6 +196,13 @@ if __name__ == "__main__":
         "--out_file", 
         type=str,
         help='name of the outfile',
+        required=True
+    )
+
+    parser.add_argument(
+        "--ingested_files_log", 
+        type=str,
+        help='log of the files ingested',
         required=True
     )
 

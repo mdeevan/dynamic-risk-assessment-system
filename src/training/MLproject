@@ -5,11 +5,11 @@ conda_env: ../../config/environment.yml
 entry_points:
   main:
     parameters:
-      in_path:
+      ingested_data_path:
         description: folder containing for the source data  
         type: string
 
-      in_file:
+      ingestion_filename:
         description: soure data filename
         type: string
 
@@ -34,8 +34,8 @@ entry_points:
         type: boolean
 
     command: >-
-        python training.py  --in_path {in_path} \
-                            --in_file {in_file} \
+        python training.py  --ingested_data_path {ingested_data_path} \
+                            --ingestion_filename {ingestion_filename} \
                             --out_path {out_path} \
                             --out_model {out_model} \
                             --num_features {num_features} \

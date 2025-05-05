@@ -25,10 +25,11 @@ def __run_ingestion(filename, cfg):
         # env_manager="virtualenv",
         env_manager="conda",
         parameters={
-            "in_path": cfg["ingestion"]["ingestion_path"],  
-            "in_file": cfg["ingestion"]["ingestion_filename"],
+            "ingestion_path": cfg["ingestion"]["ingestion_path"],  
+            "ingestion_filename": cfg["ingestion"]["ingestion_filename"],
             "out_path": cfg["ingestion"]["ingested_data_path"],
             "out_file": cfg["ingestion"]["ingested_filename"],
+            "ingested_files_log": cfg["ingestion"]["ingested_files_log"],
             "mlflow_logging": cfg["main"]["mlflow_logging"]
             # "modeling": cfg["modeling"]
         },
@@ -43,10 +44,10 @@ def __run_training(filename, cfg):
             #  out path and outfile are where the ingested file is stored, 
             # from previous 'ingestion' step
 
-            "in_path": cfg["ingestion"]["ingested_data_path"],
-            "in_file": cfg["ingestion"]["ingested_filename"],
-            "out_path": cfg["ingestion"]["output_model_path"],
-            "out_model": cfg["ingestion"]["output_model_name"],
+            "ingested_data_path": cfg["ingestion"]["ingested_data_path"],
+            "ingestion_filename": cfg["ingestion"]["ingested_filename"],
+            "out_path": cfg["training"]["output_model_path"],
+            "out_model": cfg["prod_deployment"]["output_model_name"],
             "num_features": cfg["num_features"],
             "lr_params": cfg["logistic_regression_params"][0],
             "mlflow_logging": cfg["main"]["mlflow_logging"]
@@ -62,10 +63,10 @@ def __run_scoring_model(filename, cfg):
             #  out path and outfile are where the ingested file is stored, 
             # from previous 'ingestion' step
 
-            "model_path_name": cfg["ingestion"]["output_model_path"],
-            "report_folder": cfg["ingestion"]["report_folder"],
-            "prediction_output": cfg["ingestion"]["prediction_output"],
-            "score_filename": cfg["ingestion"]["score_filename"],
+            "model_path_name": cfg["training"]["output_model_path"],
+            "report_folder": cfg["scoring"]["report_folder"],
+            "prediction_output": cfg["scoring"]["prediction_output"],
+            "score_filename": cfg["scoring"]["score_filename"],
             "mlflow_logging": cfg["main"]["mlflow_logging"]
         },
     )
@@ -76,12 +77,13 @@ def __run_production_deployment(filename, cfg):
         entry_point="main",
         env_manager="conda",
         parameters={
-            "model_path_name": cfg["ingestion"]["output_model_path"],
-            "output_model_name": cfg["ingestion"]["output_model_name"],
-            "score_filename" : cfg["ingestion"]["score_filename"],
+            "model_path_name": cfg["training"]["output_model_path"],
+            "output_model_name": cfg["prod_deployment"]["output_model_name"],
+            "score_filename" : cfg["scoring"]["score_filename"],
             "ingested_data_path" : cfg["ingestion"]["ingested_data_path"],
             "ingested_filename" : cfg["ingestion"]["ingested_filename"],
-            "prod_deployment_path": cfg["ingestion"]["prod_deployment_path"],
+            "ingested_files_log" : cfg["ingestion"]["ingested_files_log"],
+            "prod_deployment_path": cfg["prod_deployment"]["prod_deployment_path"],
             "mlflow_logging": cfg["main"]["mlflow_logging"]
         },
     )
@@ -92,11 +94,11 @@ def __run_diagnostics(filename, cfg):
         entry_point="main",
         env_manager="conda",
         parameters={
-            "model_path_name": cfg["ingestion"]["prod_deployment_path"],
-            "model_file_name": cfg["ingestion"]["output_model_name"],
-            "data_path_name" : cfg["ingestion"]["test_data_path"],
-            "report_folder" : cfg["ingestion"]["report_folder"],
-            "test_prediction_output" : cfg["ingestion"]["test_prediction_output"],
+            "model_path_name": cfg["prod_deployment"]["prod_deployment_path"],
+            "model_file_name": cfg["prod_deployment"]["output_model_name"],
+            "data_path_name" : cfg["scoring"]["test_data_path"],
+            "report_folder" : cfg["scoring"]["report_folder"],
+            "test_prediction_output" : cfg["scoring"]["test_prediction_output"],
             "num_features": cfg["num_features"],
             "mlflow_logging": cfg["main"]["mlflow_logging"]
         },

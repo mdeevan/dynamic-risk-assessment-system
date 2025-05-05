@@ -23,8 +23,8 @@ logger = logging.getLogger()
 class Train_Model():
 
     def __init__(self, args):
-        self.in_path = args.in_path
-        self.in_file = args.in_file
+        self.ingested_data_path = args.ingested_data_path
+        self.ingestion_filename = args.ingestion_filename
         self.out_path = args.out_path
         self.out_model = args.out_model
         self.parent_folder = "../../"
@@ -113,7 +113,7 @@ class Train_Model():
             None
         '''
 
-        path = self.in_path if (p_path is None) else p_path
+        path = self.ingested_data_path if (p_path is None) else p_path
 
         filename = os.path.join(self.parent_folder, path, p_filename)
         logger.info(f"_-get-filename : {filename}")
@@ -145,7 +145,7 @@ class Train_Model():
 
         print("Train model class method")
         try:
-            filename = self.__get_filename(self.in_file)
+            filename = self.__get_filename(self.ingestion_filename)
             df = self.__read_file(filename)
     
         except Exception as err:
@@ -268,14 +268,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="model training")
 
     parser.add_argument(
-        "--in_path", 
+        "--ingested_data_path", 
         type=str,
         help="path to the source data file",
         required=True
     )
 
     parser.add_argument(
-        "--in_file", 
+        "--ingestion_filename", 
         type=str,
         help="source data file to process",
         required=True

@@ -6,11 +6,11 @@ entry_points:
   main:
     parameters:
 
-      in_path:
+      ingestion_path:
         description: in folder 
         type: string
 
-      in_file:
+      ingestion_filename:
         description: in filename
         type: string
 
@@ -22,10 +22,18 @@ entry_points:
         description: out filename
         type: string
 
+      ingested_files_log:
+        description: log files listing files ingested
+        type: string
 
+      mlflow_logging:
+        description: mlflow logging enable or disabled
+        type: string
 
     command: >-
-        python run_data_ingestion.py  --in_path {in_path} \
-                                      --in_file {in_file} \
-                                      --out_path {out_path} \
-                                      --out_file {out_file} 
+        python ingestion.py --ingestion_path {ingestion_path} \
+                            --ingestion_filename {ingestion_filename} \
+                            --out_path {out_path} \
+                            --out_file {out_file} \
+                            --ingested_files_log {ingested_files_log} \
+                            --mlflow_logging {mlflow_logging}

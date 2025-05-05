@@ -25,6 +25,10 @@ entry_points:
         description: filename of the file used in training
         type: string
 
+      ingested_files_log:
+        description: log of files ingested for final data
+        type: string
+
       prod_deployment_path:
         description: production deployment path
         type: string
@@ -39,5 +43,6 @@ entry_points:
                              --score_filename {score_filename} \
                              --ingested_data_path {ingested_data_path} \
                              --ingested_filename {ingested_filename} \
+                             --ingested_files_log {ingested_files_log} \
                              --prod_deployment_path {prod_deployment_path} \
                              --mlflow_logging {mlflow_logging}

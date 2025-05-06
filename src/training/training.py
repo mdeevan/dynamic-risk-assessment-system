@@ -16,6 +16,10 @@ import json
 import ast
 import sys
 
+sys.path.append("../")
+from lib import utilities
+
+
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
 
@@ -31,25 +35,28 @@ class Train_Model():
         self.num_features =""
         self.mlflow_logging = args.mlflow_logging
 
-        print("\n training.py -> incoming:")
-        print(f"args.num_features :{type(args.num_features)} -> {args.num_features}")
-        print("\n")
-        print(f"args.lr_params : {type(args.lr_params)} -> {args.lr_params}")
-        print("\n")
+        logging.debug("\n training.py -> incoming:")
+        logging.debug(f"args.num_features :{type(args.num_features)} -> {args.num_features}")
+        logging.debug("\n")
+        logging.debug(f"args.lr_params : {type(args.lr_params)} -> {args.lr_params}")
+        logging.debug("\n")
 
-        print("\n training.py -> conversion:")
+        logging.debug("\n training.py -> conversion:")
         
         # num_features is a list parameter with string values but passed in as string.
         # convering the string into a list with ast.literal_eval 
+
+        print(f"training.py args : \n{args}")
+
         num_features = ast.literal_eval(args.num_features) 
-        print(f"args.num_features :{type(num_features)} -> {num_features}")
-        print("\n")
+        logging.debug(f"args.num_features :{type(num_features)} -> {num_features}")
+        logging.debug("\n")
 
         # lr_params is a dictionary of mixed types but passed in as string.
         # convering the string into a list with ast.literal_eval 
         lr_params = ast.literal_eval(args.lr_params.replace("'None'", 'None'))
-        print(f"args.lr_params : {type(lr_params)} -> {lr_params}")
-        print("\n")
+        logging.debug(f"args.lr_params : {type(lr_params)} -> {lr_params}")
+        logging.debug("\n")
 
         # nf=args.num_features.replace("'", '"')
         # print (f"type of nf: {type(nf)}")
@@ -102,34 +109,34 @@ class Train_Model():
         #         print(exc)
 
 
-    def __get_filename(self, p_filename:str, p_path:str=None) -> str:
-        '''
-        Form and return a filename
-        Input:
-                    p_filename : str - filename 
-            p_path : str - path where the filename is stored/created
+    # def __get_filename(self, p_filename:str, p_path:str=None) -> str:
+    #     '''
+    #     Form and return a filename
+    #     Input:
+    #                 p_filename : str - filename 
+    #         p_path : str - path where the filename is stored/created
 
-        return:
-            None
-        '''
+    #     return:
+    #         None
+    #     '''
 
-        path = self.ingested_data_path if (p_path is None) else p_path
+    #     path = self.ingested_data_path if (p_path is None) else p_path
 
-        filename = os.path.join(self.parent_folder, path, p_filename)
-        logger.info(f"_-get-filename : {filename}")
-        return filename
+    #     filename = os.path.join(self.parent_folder, path, p_filename)
+    #     logger.info(f"_-get-filename : {filename}")
+    #     return filename
 
 
-    def __read_file(self, filename:str) -> pd.DataFrame:
-        '''
-        read csv into panda framework
+    # def __read_file(self, filename:str) -> pd.DataFrame:
+    #     '''
+    #     read csv into panda framework
 
-        INPUT:
-            filename : csv files to read
-        RETURN:
-            pd.DataFrme : panda dataframe
-        '''
-        return pd.read_csv(filename)
+    #     INPUT:
+    #         filename : csv files to read
+    #     RETURN:
+    #         pd.DataFrme : panda dataframe
+    #     '''
+    #     return pd.read_csv(filename)
 
 
     def train_model(self) -> str:
@@ -143,16 +150,21 @@ class Train_Model():
             path of the output file
         '''
 
-        print("Train model class method")
+        logging.debug("Train model class method")
         try:
-            filename = self.__get_filename(self.ingestion_filename)
-            df = self.__read_file(filename)
+            # filename = self.__get_filename(self.ingestion_filename)
+            filename = utilities.get_filename(p_filename=self.ingestion_filename,
+                                              p_parent_folder=self.parent_folder,
+                                              p_path=self.ingested_data_path)
+            # df = self.__read_file(filename)
+            print(f"training.py filename : {filename}")
+            df = utilities.read_file(filename)
     
         except Exception as err:
             logger.info(f"error reading file %s", err)
             raise
 
-        print(f"filename : {filename}")
+        logging.debug(f"filename : {filename}")
         try:
             lr = LogisticRegression(C = self.C ,
                                     class_weight =  self.class_weight , 
@@ -172,7 +184,7 @@ class Train_Model():
             logger.error(f"LR Error : {lr}")
 
         try:
-            print(f"num_features = {type(self.num_features)} \n {self.num_features}")
+            logging.debug(f"num_features = {type(self.num_features)} \n {self.num_features}")
             X = df[self.num_features]
             y = X.pop('exited')
 
@@ -180,36 +192,42 @@ class Train_Model():
             logger.error(f"dataframe error : {err}")
             raise
 
-        print(f"y : {y.head()}")
+        logging.debug(f"y : {y.head()}")
 
         try:
 
-            print("fitting model")
+            logging.debug("fitting model")
             model = lr.fit(X, y)    
         
         except Exception as err:
             logger.error(f"error model training : {err}")
             raise
 
-        print("\ncreate directory\n")
+        logging.debug("\ncreate directory\n")
         try:
-            folder_path = os.path.join(self.parent_folder, self.out_path)
-            print(f"folder_path : {folder_path}")
-            os.mkdir(folder_path)
+
+            # folder_path = os.path.join(self.parent_folder, self.out_path)
+            # print(f"folder_path : {folder_path}")
+            # os.mkdir(folder_path)
+
+            utilities.make_dir(self.parent_folder, self.out_path)
 
         except Exception as err:
             # folder exists so we don't need to abort processing
-            logger.info(f"train_model: error creating directory : %s ", err)
+            logger.error(f"train_model: error creating directory : %s ", err)
             raise
 
-        out = self.__get_filename(self.out_model, self.out_path)
+        # out = self.__get_filename(self.out_model, self.out_path)
+        out = utilities.get_filename(p_filename=self.out_model,
+                                     p_parent_folder=self.parent_folder,
+                                     p_path=self.out_path)
 
         logging.info(f"training: Saving model : {out}")
         try:
             pickle.dump(model, open(out, 'wb'))  
 
         except Exception as err:
-            print(f"error %s in creating outfile %s", err, out)
+            logging.debug(f"error %s in creating outfile %s", err, out)
             raise
 
         return out
@@ -218,21 +236,21 @@ class Train_Model():
 def go(args):
 
 
-    print("\nInside traingin .go")
-    print(f"num_features : {args.num_features}")
-    print(f"lr_params : {args.lr_params}")
+    logging.debug("\nInside traingin .go")
+    logging.debug(f"num_features : {args.num_features}")
+    logging.debug(f"lr_params : {args.lr_params}")
 
-    print("\n ")
+    logging.debug("\n ")
 
 
     train_model = Train_Model(args)
     
 
-    print(f"args.mlflow_logging : {train_model.mlflow_logging}")
+    logging.debug(f"args.mlflow_logging : {train_model.mlflow_logging}")
     if train_model.mlflow_logging:
         with mlflow.start_run():
-            print("inside mlflow_start_run")
-            print(f"inside go and in scope of mlflow.start_run")
+            logging.debug("inside mlflow_start_run")
+            logging.debug(f"inside go and in scope of mlflow.start_run")
             
             try:
                 path = train_model.train_model()
@@ -258,13 +276,13 @@ def go(args):
 
 if __name__ == "__main__":
 
-    print("inside training.py")
+    logging.info("inside training.py")
 
-    print("\n\n\n")
+    logging.debug("\n\n\n")
     for arg in sys.argv:
-        print(arg)
+        logging.debug(arg)
 
-    print("\n\n\n")
+    logging.debug("\n\n\n")
     parser = argparse.ArgumentParser(description="model training")
 
     parser.add_argument(
@@ -315,9 +333,18 @@ if __name__ == "__main__":
         help='mlflow logging enable or disabled',
         required=False
     )
+    parser.add_argument(
+        "--diagnostic", 
+        type=bool,
+        help='is ingestion for diagnostics?',
+        default=False,
+        required=False
+    )
+
 
     args = parser.parse_args()
 
-    print(f"inside training main -> {args}")
+    logging.debug(f"inside training main -> {args}")
+    logging.info(f"training.py args = {args}")
 
     go(args)

@@ -179,3 +179,5 @@ temp.ipynb
 history.txt
 curl_output.txt
 freeze*.txt
+temp
+.vscode/

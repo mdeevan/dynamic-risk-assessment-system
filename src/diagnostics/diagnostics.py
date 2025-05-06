@@ -15,8 +15,9 @@ import inspect
 import timeit
 
 sys.path.append("../")
-# from  ../../data_ingestion import Ingest_Data()
 from data_ingestion.ingestion import Ingest_Data
+from training.training import Train_Model
+
 from lib import utilities
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
@@ -26,6 +27,8 @@ logger = logging.getLogger()
 class Diagnostics():
 
     def __init__(self, args):
+
+        print(f"diagnostics args : {args}")
             
         self.model_path_name   = args.model_path_name
         self.model_file_name   = args.model_file_name
@@ -36,6 +39,10 @@ class Diagnostics():
         self.score_filename    = args.score_filename
         self.mlflow_logging    = args.mlflow_logging
         self.parent_folder     = "../../"
+        self.arg_num_features  = args.num_features
+        self.arg_lr_params     = args.lr_params
+        # self.lr_params         = ast.literal_eval(args.lr_params.replace("'None'", 'None'))
+
 
         num_features = ast.literal_eval(args.num_features) 
         self.num_features = num_features
@@ -94,7 +101,11 @@ class Diagnostics():
         # load model
         logging.info("Loading deployed model")
         # model_loc = self.__get_filename(self.model_file_name, self.model_path_name)
-        model_loc = utilities.get_filename(self.model_file_name, self.model_path_name)
+        model_loc = utilities.get_filename(p_filename = self.model_file_name,
+                                           p_parent_folder=self.parent_folder,
+                                           p_path =self.model_path_name)
+
+        logging.info("\nafter calling utitlies \n")
         try:
 
             logging.info(f"Loading deployed model %s", model_loc)
@@ -120,13 +131,19 @@ class Diagnostics():
                 # files = [f for f in os.listdir(test_data_folder) 
                 #         if os.path.isfile(self.__get_filename(f))]
                 files = [f for f in os.listdir(test_data_folder) 
-                        if os.path.isfile(utilities.get_filename(f))]
+                            if os.path.isfile(utilities.get_filename(p_filename=f,
+                                                                     p_parent_folder=self.parent_folder,
+                                                                     p_path=self.data_folder
+                                                                     ))]
             else:
                 files = [self.data_files]
 
             for file in files:
                 # filename = self.__get_filename(file)            
-                filename = utilities.get_filename(file)            
+                filename = utilities.get_filename(p_filename=file,
+                                                  p_parent_folder=self.parent_folder,
+                                                  p_path=self.data_folder
+                                                  )            
 
                 # df_new = self.__read_file(filename)
                 df_new = utilities.read_file(filename)
@@ -155,8 +172,10 @@ class Diagnostics():
 
                 # predict_output = self.__get_filename(p_path=self.report_folder, 
                 #                                      p_filename=self.prediction_output)
-                predict_output = utilities.get_filename(p_path=self.report_folder,
-                                                        p_filename=self.prediction_output)
+                predict_output = utilities.get_filename(p_filename=self.prediction_output,
+                                                        p_parent_folder=self.parent_folder,
+                                                        p_path=self.report_folder
+                                                        )
 
                 # save prediction result in the same folder as the folder
                 pd.DataFrame(zip(y, y_pred.tolist()), 
@@ -170,7 +189,20 @@ class Diagnostics():
         return predict_output
     
 
-    def __time_ingestion(self, p_iterations: int = 1):
+    def __time_ingestion_setup(self):
+        '''
+        setup class instance to test the ingestion execution
+        the parameters used as arguments are class attributes
+        INGEST_DATA: its a python module that has class definition to perform ingestion
+        PROCESS_DATA: is a class method to perform the ingestion
+        
+        INPUT:
+            None
+        OUTPUT:
+            None
+        '''
+        logging.debug("Inside time_ingestion")
+
         parser = argparse.ArgumentParser(description="time ingestion")
 
         parser.add_argument("--ingestion_path", type=str, default=self.data_folder)
@@ -181,11 +213,72 @@ class Diagnostics():
         parser.add_argument("--mlflow_logging", type=str, default=False)
         parser.add_argument("--diagnostic", type=str, default=True)
 
-        test_ingestion = Ingest_Data(parser.parse_args())
+        args = parser.parse_args([]) # Pass an empty list for non-command-line usage
 
-        path = test_ingestion.process_files()
+        time_ingestion = Ingest_Data(args)
+        time_ingestion.process_files()
 
-        execution_time = timeit.timeit(test_ingestion.process_files(), number=p_iterations)
+    def __time_training_setup(self):
+        '''
+        setup class instance to test the ingestion execution
+        the parameters used as arguments are class attributes
+        INGEST_DATA: its a python module that has class definition to perform ingestion
+        PROCESS_DATA: is a class method to perform the ingestion
+        
+        INPUT:
+            None
+        OUTPUT:
+            None
+        '''
+        logging.debug("Inside time_ingestion")
+
+        parser = argparse.ArgumentParser(description="time ingestion")
+
+        parser.add_argument("--ingested_data_path", type=str, default=self.data_folder)
+        parser.add_argument("--ingestion_filename", type=str, default=self.data_files)
+        parser.add_argument("--out_path", type=str, default="temp")
+        parser.add_argument("--out_model", type=str, default="temp_model")
+        parser.add_argument("--num_features", type=str, default=self.arg_num_features)
+        parser.add_argument("--lr_params", type=str, default=self.arg_lr_params)
+        parser.add_argument("--mlflow_logging", type=str, default=False)
+        parser.add_argument("--diagnostic", type=str, default=True)
+
+        args = parser.parse_args([]) # Pass an empty list for non-command-line usage
+
+        time_training = Train_Model(args)
+        time_training.train_model()
+
+    def _time_ingestion(self, p_iterations: int = 1) -> float:
+        '''
+        class method to test the execution time of class ingestion using timeit.
+        INPUT:
+            p_iterations: INT: number of iterations to perform intesting performance
+        OUTPUT:
+            execution time : FLOAT - execution time in seconds
+
+        '''
+
+        logging.info("inside time_ingestion")
+        t = timeit.Timer(self.__time_ingestion_setup)
+        execution_time = t.timeit(p_iterations)
+        logging.debug(f"execution time {execution_time}")
+
+        return execution_time
+
+    def _time_training(self, p_iterations: int = 1) -> float:
+        '''
+        class method to test the execution time of class ingestion using timeit.
+        INPUT:
+            p_iterations: INT: number of iterations to perform intesting performance
+        OUTPUT:
+            execution time : FLOAT - execution time in seconds
+
+        '''
+
+        logging.info("inside time_training")
+        t = timeit.Timer(self.__time_training_setup)
+        execution_time = t.timeit(p_iterations)
+        logging.debug(f"execution time {execution_time}")
 
         return execution_time
 
@@ -199,6 +292,7 @@ def go(args):
 
     diagnostics = Diagnostics(args)
 
+    print(f"\nargs : {args}\n")
     if diagnostics.mlflow_logging:
         with mlflow.start_run():
             print("inside mlflow_start_run")
@@ -224,7 +318,9 @@ def go(args):
             return False
         
     
-    ingestion_time = diagnostics.__time_ingestion(10)
+    ingestion_time = diagnostics._time_ingestion(10)
+    ingestion_time = diagnostics._time_training(1)
+    
     logging.info(f"Ingestion time : {ingestion_time:.6f} seconds")
     
 
@@ -283,6 +379,13 @@ if __name__ == "__main__":
         help='modeling parameters',
         required=False
     )
+    parser.add_argument(
+        "--lr_params", 
+        type=str,
+        help='logistic regression model tuning parameters',
+        required=False
+    )
+
     parser.add_argument(
         "--mlflow_logging", 
         type=bool,

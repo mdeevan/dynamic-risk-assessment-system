@@ -103,6 +103,7 @@ def __run_diagnostics(filename, cfg):
             "prediction_output": cfg["diagnostics"]["prediction_output"],
             "score_filename"   : cfg["diagnostics"]["score_filename"],
             "num_features"     : cfg["num_features"],
+            "lr_params"        : cfg["logistic_regression_params"][0],
             "mlflow_logging"   : cfg["main"]["mlflow_logging"]
         },
     )

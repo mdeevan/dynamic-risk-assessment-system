@@ -36,6 +36,10 @@ entry_points:
         description: list of numeric features to consider for model training
         type: array
 
+      lr_params:
+        description: list of logistic regression parameters to consider for model training
+        type: array
+
       mlflow_logging:
         description: Whether to log in dagshub or not
         type: string
@@ -49,5 +53,6 @@ entry_points:
                               --prediction_output {prediction_output} \
                               --score_filename {score_filename} \
                               --num_features {num_features} \
+                              --lr_params {lr_params} \
                               --mlflow_logging {mlflow_logging}
 

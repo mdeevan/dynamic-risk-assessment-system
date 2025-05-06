@@ -34,10 +34,12 @@ class Diagnostics():
         self.model_file_name   = args.model_file_name
         self.data_folder       = args.data_folder
         self.data_files        = args.data_files
+        self.ingested_file     = args.ingested_file
         self.report_folder     = args.report_folder
         self.prediction_output = args.prediction_output
         self.score_filename    = args.score_filename
         self.mlflow_logging    = args.mlflow_logging
+        self.temp_folder       = args.temp_folder
         self.parent_folder     = "../../"
         self.arg_num_features  = args.num_features
         self.arg_lr_params     = args.lr_params
@@ -207,8 +209,8 @@ class Diagnostics():
 
         parser.add_argument("--ingestion_path", type=str, default=self.data_folder)
         parser.add_argument("--ingestion_filename", type=str, default=self.data_files)
-        parser.add_argument("--out_path", type=str, default="temp")
-        parser.add_argument("--out_file", type=str, default="temp")
+        parser.add_argument("--out_path", type=str, default=self.temp_folder)
+        parser.add_argument("--out_file", type=str, default=self.ingested_file)
         parser.add_argument("--ingested_files_log", type=str, default="templog")
         parser.add_argument("--mlflow_logging", type=str, default=False)
         parser.add_argument("--diagnostic", type=str, default=True)
@@ -234,10 +236,10 @@ class Diagnostics():
 
         parser = argparse.ArgumentParser(description="time ingestion")
 
-        parser.add_argument("--ingested_data_path", type=str, default=self.data_folder)
-        parser.add_argument("--ingestion_filename", type=str, default=self.data_files)
-        parser.add_argument("--out_path", type=str, default="temp")
-        parser.add_argument("--out_model", type=str, default="temp_model")
+        parser.add_argument("--ingested_data_path", type=str, default=self.temp_folder)
+        parser.add_argument("--ingestion_filename", type=str, default=self.ingested_file)
+        parser.add_argument("--out_path", type=str, default=self.temp_folder)
+        parser.add_argument("--out_model", type=str, default=self.model_file_name)
         parser.add_argument("--num_features", type=str, default=self.arg_num_features)
         parser.add_argument("--lr_params", type=str, default=self.arg_lr_params)
         parser.add_argument("--mlflow_logging", type=str, default=False)
@@ -261,7 +263,7 @@ class Diagnostics():
         logging.info("inside time_ingestion")
         t = timeit.Timer(self.__time_ingestion_setup)
         execution_time = t.timeit(p_iterations)
-        logging.debug(f"execution time {execution_time}")
+        logging.debug(f"INGESTION execution time with {p_iterations} iterations : {execution_time}")
 
         return execution_time
 
@@ -278,7 +280,7 @@ class Diagnostics():
         logging.info("inside time_training")
         t = timeit.Timer(self.__time_training_setup)
         execution_time = t.timeit(p_iterations)
-        logging.debug(f"execution time {execution_time}")
+        logging.debug(f"Training execution time with {p_iterations} iterations : {execution_time}")
 
         return execution_time
 
@@ -319,9 +321,10 @@ def go(args):
         
     
     ingestion_time = diagnostics._time_ingestion(10)
-    ingestion_time = diagnostics._time_training(1)
+    training_time = diagnostics._time_training(10)
     
     logging.info(f"Ingestion time : {ingestion_time:.6f} seconds")
+    logging.info(f"Training time  : {training_time:.6f} seconds")
     
 
 
@@ -356,10 +359,23 @@ if __name__ == "__main__":
         required=True
     )
     parser.add_argument(
+        "--ingested_file", 
+        type=str,
+        help="processed file resulting from input data files ",
+        required=True
+    )
+    parser.add_argument(
         "--report_folder", 
         type=str,
         help="folder for reports and results ",
         required=True
+    )
+    parser.add_argument(
+        "--temp_folder", 
+        type=str,
+        help="folder for diagnostics output - temporary ",
+        required=False,
+        default="temp"
     )
     parser.add_argument(
         "--prediction_output", 

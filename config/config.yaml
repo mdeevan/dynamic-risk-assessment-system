@@ -30,12 +30,13 @@ prod_deployment:
 
 diagnostics:
   prod_deployment_path: "production_deployment" 
-  output_model_name: "trainedmodel.pkl"
-  data_folder : "practicedata"
-  data_files  : "*"
-  report_folder: "report"
-  prediction_output: "predictions_diag.csv"
-  score_filename: "latestscore_diag.txt"
+  output_model_name   : "trainedmodel.pkl"
+  data_folder         : "practicedata"
+  data_files          : "*"
+  report_folder       : "report"
+  prediction_output   : "predictions_diag.csv"
+  score_filename      : "latestscore_diag.txt"
+  temp_folder         : "temp"
 
 num_features:
 - lastmonth_activity

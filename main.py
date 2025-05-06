@@ -99,9 +99,11 @@ def __run_diagnostics(filename, cfg):
             "model_file_name"  : cfg["diagnostics"]["output_model_name"],
             "data_folder"      : cfg["diagnostics"]["data_folder"],
             "data_files"       : cfg["diagnostics"]["data_files"],
+            "ingested_file"    : cfg["ingestion"]["ingested_filename"],
             "report_folder"    : cfg["diagnostics"]["report_folder"],
             "prediction_output": cfg["diagnostics"]["prediction_output"],
             "score_filename"   : cfg["diagnostics"]["score_filename"],
+            "temp_folder"      : cfg["diagnostics"]["temp_folder"],
             "num_features"     : cfg["num_features"],
             "lr_params"        : cfg["logistic_regression_params"][0],
             "mlflow_logging"   : cfg["main"]["mlflow_logging"]

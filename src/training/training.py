@@ -20,7 +20,7 @@ sys.path.append("../")
 from lib import utilities
 
 
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)-15s %(message)s")
+logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
 
 
@@ -46,7 +46,7 @@ class Train_Model():
         # num_features is a list parameter with string values but passed in as string.
         # convering the string into a list with ast.literal_eval 
 
-        print(f"training.py args : \n{args}")
+        logging.debug(f"training.py args : \n{args}")
 
         num_features = ast.literal_eval(args.num_features) 
         logging.debug(f"args.num_features :{type(num_features)} -> {num_features}")
@@ -222,7 +222,7 @@ class Train_Model():
                                      p_parent_folder=self.parent_folder,
                                      p_path=self.out_path)
 
-        logging.info(f"training: Saving model : {out}")
+        logging.DEBUG(f"training: Saving model : {out}")
         try:
             pickle.dump(model, open(out, 'wb'))  
 
@@ -345,6 +345,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     logging.debug(f"inside training main -> {args}")
-    logging.info(f"training.py args = {args}")
+    logging.debug(f"training.py args = {args}")
 
     go(args)

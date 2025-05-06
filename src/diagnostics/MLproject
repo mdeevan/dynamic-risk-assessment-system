@@ -12,6 +12,10 @@ entry_points:
         description: name of the stored model
         type: string
 
+      ingested_file:
+        description: Name of the processed file resulting from processing input data files 
+        type: string
+
       data_folder:
         description: folder containing the test data, all files in the folder will be processed
         type: string
@@ -22,6 +26,10 @@ entry_points:
 
       report_folder:
         description: folder to store the reports and results
+        type: string
+
+      temp_folder:
+        description: Folder for intermediate results - temporary
         type: string
 
       prediction_output:
@@ -49,7 +57,9 @@ entry_points:
                               --model_file_name {model_file_name} \
                               --data_folder {data_folder} \
                               --data_files {data_files} \
+                              --ingested_file {ingested_file} \
                               --report_folder {report_folder} \
+                              --temp_folder {temp_folder} \
                               --prediction_output {prediction_output} \
                               --score_filename {score_filename} \
                               --num_features {num_features} \

@@ -37,6 +37,7 @@ diagnostics:
   prediction_output   : "predictions_diag.csv"
   score_filename      : "latestscore_diag.txt"
   temp_folder         : "temp"
+  timing_filename     : "timings_diag.csv"
 
 num_features:
 - lastmonth_activity

@@ -40,6 +40,11 @@ entry_points:
         description: score filename
         type: string
 
+      timing_filename:
+        description: filename to save the ingestion and training timing
+        type: string
+        default: "timings_diag.csv"
+
       num_features:
         description: list of numeric features to consider for model training
         type: array
@@ -62,6 +67,7 @@ entry_points:
                               --temp_folder {temp_folder} \
                               --prediction_output {prediction_output} \
                               --score_filename {score_filename} \
+                              --timing_filename {timing_filename} \
                               --num_features {num_features} \
                               --lr_params {lr_params} \
                               --mlflow_logging {mlflow_logging}

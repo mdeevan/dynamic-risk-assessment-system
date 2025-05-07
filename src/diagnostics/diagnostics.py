@@ -127,7 +127,9 @@ class Diagnostics():
 
             df = pd.DataFrame()
             test_data_folder = os.path.join(self.parent_folder, self.data_folder)
-            print(f"Diagnostic test data folder: {test_data_folder} , parent={self.parent_folder}, data folder={self.data_folder}")
+            logging.debug(f"Diagnostic test data folder: {test_data_folder} , \
+                                    parent={self.parent_folder}, \
+                                    data folder={self.data_folder}")
 
             # Process all files in the data folder 
             # alternate is to process a single file as configured in config.yaml
@@ -157,6 +159,23 @@ class Diagnostics():
             logging.error(f"%s: error diagnostic reading test data %s", func_name, err)
             raise
 
+        # ---------------------------------
+        # Find an record null values in each of the columns
+
+        outfile = utilities.get_filename(p_filename="null_values.csv",
+                                         p_parent_folder=self.parent_folder,
+                                         p_path=self.report_folder)
+        pd.DataFrame(df.isna().sum()).T.to_csv(outfile, index=False)
+
+        outfile = utilities.get_filename(p_filename="statistics.csv",
+                                         p_parent_folder=self.parent_folder,
+                                         p_path=self.report_folder)
+        (df[self.num_features].agg((['mean','median','std']))
+                                .T.reset_index()
+                                .to_csv(outfile, index=False))
+
+
+        # ---------------------------------
         # make predictions
 
         logging.info("Making predictions")
@@ -336,9 +355,9 @@ def go(args):
     with open(outfile, 'w+') as f:
         exec_date = datetime.now().strftime('%m/%d/%Y %H:%M:%S')
 
-        f.write("dte, process, time (secs)")
-        f.write(f"{exec_date}","ingestion",{ingestion_time} + '\n')
-        f.write(f"{exec_date}","training", {training_time} + '\n')
+        f.write("dte, process, execute time (secs)\n")
+        f.write(f"{exec_date},ingestion,{ingestion_time}\n")
+        f.write(f"{exec_date},training ,{training_time}\n")
     
 
 

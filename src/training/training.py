@@ -157,7 +157,7 @@ class Train_Model():
                                               p_parent_folder=self.parent_folder,
                                               p_path=self.ingested_data_path)
             # df = self.__read_file(filename)
-            print(f"training.py filename : {filename}")
+            logging.debug(f"training.py filename : {filename}")
             df = utilities.read_file(filename)
     
         except Exception as err:
@@ -222,7 +222,8 @@ class Train_Model():
                                      p_parent_folder=self.parent_folder,
                                      p_path=self.out_path)
 
-        logging.DEBUG(f"training: Saving model : {out}")
+        # print(f"out = {out}")
+        logging.debug(f"training: Saving model : {out}")
         try:
             pickle.dump(model, open(out, 'wb'))  
 

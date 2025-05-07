@@ -30,60 +30,6 @@ class Score_Model():
         self.mlflow_logging = args.mlflow_logging
         self.parent_folder = "../../"
 
-    # def __get_filename(self, p_filename:str, p_path:str=None) -> str:
-    #     '''
-    #     Form and return a filename
-    #     Input:
-    #                 p_filename : str - filename 
-    #         p_path : str - path where the filename is stored/created
-
-    #     return:
-    #         None
-    #     '''
-
-    #     filename = os.path.join(self.parent_folder, p_path, p_filename)
-    #     logger.info(f"_-get-filename : {filename}")
-    #     return filename
-
-    # def __make_dir(self, p_parent:str, p_folder:str) -> bool:
-    #     '''
-    #     make a folder, if it doesn;'t already exists
-
-    #     INPUT:
-    #         p_parent: str : parent folder path
-    #         p_folder: str : folder name to check and create
-    #     RETURN:
-    #         bool : created or failed in creating the folder
-    #     '''
-
-    #     parent = self.parent_folder if p_parent is None else p_parent
-    #     folder = self.report_folder if p_folder is None else p_folder
-
-    #     try:
-    #         folder_name = os.path.join(parent, folder)
-
-    #         if (not os.path.isdir(folder_name)):
-    #             os.mkdir(folder_name)
-
-    #     except Exception as err:
-    #         logging.info(f"Error creating folder : %s", folder_name)
-    #         raise
-    #         # return False
-
-    #     return True
-
-    # def __read_file(self, filename:str) -> pd.DataFrame:
-    #     '''
-    #     read csv into panda framework
-
-    #     INPUT:
-    #         filename : csv files to read
-    #     RETURN:
-    #         pd.DataFrme : panda dataframe
-    #     '''
-    #     return pd.read_csv(filename)
-
-
     def run_model_scoring(self) -> float:
 
         func_name = inspect.currentframe().f_code.co_name

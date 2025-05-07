@@ -52,136 +52,129 @@ class Diagnostics():
         num_features = ast.literal_eval(args.num_features) 
         self.num_features = num_features
 
+    # def __load_model(self):
+    #     # https://stackoverflow.com/questions/5067604/determine-function-name-from-within-that-function
 
-    # def __get_filename(self, p_filename:str, p_path:str=None) -> str:
-    #     '''
-    #     Form and return a filename
-    #     Input:
-    #                 p_filename : str - filename 
-    #         p_path : str - path where the filename is stored/created
+    #     func_name = inspect.currentframe().f_code.co_name
 
-    #     return:
-    #         None
-    #     '''
+    #     # load model
+    #     logging.info("Loading deployed model")
+    #     # model_loc = self.__get_filename(self.model_file_name, self.model_path_name)
+    #     model_loc = utilities.get_filename(p_filename = self.model_file_name,
+    #                                        p_parent_folder=self.parent_folder,
+    #                                        p_path =self.model_path_name)
 
-    #     path = self.data_path_name if (p_path is None) else p_path
-
-    #     filename = os.path.join(self.parent_folder, path, p_filename)
-    #     logger.info(f"_-get-filename : {filename}")
-    #     return filename
-
-    # def __make_dir(self, p_parent:str, p_folder:str) -> bool:
-
-    #     parent = self.parent_folder if p_parent is None else p_parent
-    #     folder = self.report_folder if p_folder is None else p_folder
-
+    #     logging.info("\nafter calling utitlies \n")
     #     try:
-    #         folder_name = os.path.join(parent, folder)
-    #         os.mkdir(folder_name)
+
+    #         logging.info(f"Loading deployed model %s", model_loc)
+    #         file = open(model_loc, 'rb')
+    #         model = pickle.load(file)
 
     #     except Exception as err:
-    #         logging.info(f"folder already exists : %s", folder_name)
+    #         logging.error(f"%s: error loading model %s", func_name, err)
     #         raise
 
-    # def __read_file(self, filename:str) -> pd.DataFrame:
-    #     '''
-    #     read csv into panda framework
+    #     return model
 
-    #     INPUT:
-    #         filename : csv files to read
-    #     RETURN:
-    #         pd.DataFrme : panda dataframe
-    #     '''
-    #     return pd.read_csv(filename)
+    # def __load_dataset(self) -> pd.DataFrame:
+    #     logging.info("Loading test data")
+    #     try:
 
+    #         df = pd.DataFrame()
+    #         test_data_folder = os.path.join(self.parent_folder, self.data_folder)
+    #         logging.debug(f"Diagnostic test data folder: {test_data_folder} , \
+    #                                 parent={self.parent_folder}, \
+    #                                 data folder={self.data_folder}")
+
+    #         # Process all files in the data folder 
+    #         # alternate is to process a single file as configured in config.yaml
+    #         if self.data_files == "*":
+    #             # files = [f for f in os.listdir(test_data_folder) 
+    #             #         if os.path.isfile(self.__get_filename(f))]
+    #             files = [f for f in os.listdir(test_data_folder) 
+    #                         if os.path.isfile(utilities.get_filename(p_filename=f,
+    #                                                                  p_parent_folder=self.parent_folder,
+    #                                                                  p_path=self.data_folder
+    #                                                                  ))]
+    #         else:
+    #             files = [self.data_files]
+
+    #         for file in files:
+    #             # filename = self.__get_filename(file)            
+    #             filename = utilities.get_filename(p_filename=file,
+    #                                               p_parent_folder=self.parent_folder,
+    #                                               p_path=self.data_folder
+    #                                               )            
+
+    #             # df_new = self.__read_file(filename)
+    #             df_new = utilities.read_file(filename)
+    #             df = pd.concat([df, df_new], axis=0)         
+   
+    #     except Exception as err:
+    #         logging.error(f"%s: error diagnostic reading test data %s", func_name, err)
+    #         raise
 
     def run_diagnostics(self) -> str:
-        
-
 # https://stackoverflow.com/questions/5067604/determine-function-name-from-within-that-function
         # func_name = inspect.currentframe().f_back.f_code.co_name
         func_name = inspect.currentframe().f_code.co_name
 
-        # load model
-        # load model
-        logging.info("Loading deployed model")
-        # model_loc = self.__get_filename(self.model_file_name, self.model_path_name)
-        model_loc = utilities.get_filename(p_filename = self.model_file_name,
-                                           p_parent_folder=self.parent_folder,
-                                           p_path =self.model_path_name)
 
-        logging.info("\nafter calling utitlies \n")
-        try:
+        model = utilities.load_model(p_model_file_name = self.model_file_name,
+                                     p_parent_folder=self.parent_folder,
+                                     p_path =self.model_path_name)
 
-            logging.info(f"Loading deployed model %s", model_loc)
-            file = open(model_loc, 'rb')
-            model = pickle.load(file)
+        df = self.__load_dataset(p_parent_folder = self.parent_folder, 
+                                 p_data_folder = self.data_folder, 
+                                 p_data_files = self.data_files)
+        
+        self.__make_predictions(df, model)
 
-        except Exception as err:
-            logging.error(f"%s: error loading model %s", func_name, err)
-            raise
-            logging.error(f"%s: error loading model %s", func_name, err)
+        self.__find_null_values(df)
 
         # load dataset
-        logging.info("Loading test data")
-        try:
 
-            df = pd.DataFrame()
-            test_data_folder = os.path.join(self.parent_folder, self.data_folder)
-            logging.debug(f"Diagnostic test data folder: {test_data_folder} , \
-                                    parent={self.parent_folder}, \
-                                    data folder={self.data_folder}")
-
-            # Process all files in the data folder 
-            # alternate is to process a single file as configured in config.yaml
-            if self.data_files == "*":
-                # files = [f for f in os.listdir(test_data_folder) 
-                #         if os.path.isfile(self.__get_filename(f))]
-                files = [f for f in os.listdir(test_data_folder) 
-                            if os.path.isfile(utilities.get_filename(p_filename=f,
-                                                                     p_parent_folder=self.parent_folder,
-                                                                     p_path=self.data_folder
-                                                                     ))]
-            else:
-                files = [self.data_files]
-
-            for file in files:
-                # filename = self.__get_filename(file)            
-                filename = utilities.get_filename(p_filename=file,
-                                                  p_parent_folder=self.parent_folder,
-                                                  p_path=self.data_folder
-                                                  )            
-
-                # df_new = self.__read_file(filename)
-                df_new = utilities.read_file(filename)
-                df = pd.concat([df, df_new], axis=0)         
-   
-        except Exception as err:
-            logging.error(f"%s: error diagnostic reading test data %s", func_name, err)
-            raise
-
+    def __find_null_values(self, df) -> str:
         # ---------------------------------
         # Find an record null values in each of the columns
         outfile = utilities.get_filename(p_filename="null_values.csv",
                                          p_parent_folder=self.parent_folder,
                                          p_path=self.report_folder)
-        pd.DataFrame(df.isna().sum()).T.to_csv(outfile, index=False)
+        null_values = df.isna().sum() 
+        pd.DataFrame(null_values).T.to_csv(outfile, index=False)
 
+        return null_values
+
+    def __capture_statistics(self, df:pd.DataFrame, p_return_type:str="df"):
         # ---------------------------------
         # Capture statistics of numeric columns (mean, median, std)
         outfile = utilities.get_filename(p_filename="statistics.csv",
                                          p_parent_folder=self.parent_folder,
                                          p_path=self.report_folder)
-        (df[self.num_features].agg((['mean','median','std']))
-                                .T.reset_index()
-                                .to_csv(outfile, index=False))
+        
+        agg_values = (df[self.num_features].agg((['mean','median','std']))
+                                .T.reset_index())
+        agg_values.to_csv(outfile, index=False)
+
+        if p_return_type == "csv":
+            return_value = agg_values.to_csv()
+        elif p_return_type=="md":
+            return_value = agg_values.to_markdown()
+        elif p_return_type=="html":
+            return_value = agg_values.to_html()
+        else:
+            return_value = agg_values 
+
+        return return_value
 
         # ---------------------------------
         # Capture outdated installed packages
         outfile = utilities.get_filename(p_filename="outdated_packages.txt",
                                          p_parent_folder=self.parent_folder,
                                          p_path=self.report_folder)
-        
+
+
         command = ["pip", "list","--outdated"]
 
         with open(outfile, "w") as f:
@@ -192,6 +185,7 @@ class Diagnostics():
 
 
 
+    def __make_predictions(self, df:pd.DataFrame, model):
         # ---------------------------------
         # make predictions
 

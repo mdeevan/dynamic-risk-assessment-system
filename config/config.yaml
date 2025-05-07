@@ -7,7 +7,7 @@ main:
 ingestion:
   ingestion_path: "practicedata"
   # all files in the folder
-  ingestion_filename : '*'
+  ingestion_filename : ['*']
   ingested_data_path : "ingesteddata" 
   output_path        : "ingesteddata" 
   output_filename    : "finaldata.csv"

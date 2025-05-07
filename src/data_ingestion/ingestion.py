@@ -77,7 +77,7 @@ class Ingest_Data():
         # parent_folder = "../"
         files = []
         try:
-            if (self.ingestion_filename == "*"):
+            if ("*" in self.ingestion_filename ):
                 logging.debug(f"\nrun-data-ingestion: self.infile {self.ingestion_filename}")
 
                 source_folder = os.path.join(self.parent_folder, self.ingestion_path)

@@ -22,7 +22,7 @@ from training.training import Train_Model
 
 from lib import utilities
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
 
 
@@ -115,24 +115,6 @@ class Diagnostics():
     #         logging.error(f"%s: error diagnostic reading test data %s", func_name, err)
     #         raise
 
-    def run_diagnostics(self) -> str:
-# https://stackoverflow.com/questions/5067604/determine-function-name-from-within-that-function
-        # func_name = inspect.currentframe().f_back.f_code.co_name
-        func_name = inspect.currentframe().f_code.co_name
-
-
-        model = utilities.load_model(p_model_file_name = self.model_file_name,
-                                     p_parent_folder=self.parent_folder,
-                                     p_path =self.model_path_name)
-
-        df = self.__load_dataset(p_parent_folder = self.parent_folder, 
-                                 p_data_folder = self.data_folder, 
-                                 p_data_files = self.data_files)
-        
-        self.__make_predictions(df, model)
-
-        self.__find_null_values(df)
-
         # load dataset
 
     def __find_null_values(self, df) -> str:
@@ -146,36 +128,48 @@ class Diagnostics():
 
         return null_values
 
-    def __capture_statistics(self, df:pd.DataFrame, p_return_type:str="df"):
+    def __capture_statistics(self, p_df:pd.DataFrame, p_return_type:str="df"):
         # ---------------------------------
         # Capture statistics of numeric columns (mean, median, std)
         outfile = utilities.get_filename(p_filename="statistics.csv",
                                          p_parent_folder=self.parent_folder,
                                          p_path=self.report_folder)
         
-        agg_values = (df[self.num_features].agg((['mean','median','std']))
+        print(f"STAT: outfile : {outfile}")
+        agg_values = (p_df[self.num_features].agg((['mean','median','std']))
                                 .T.reset_index())
-        agg_values.to_csv(outfile, index=False)
+        agg_values.to_csv(outfile, index=False) # common behavior
 
         if p_return_type == "csv":
-            return_value = agg_values.to_csv()
+            stats_value = agg_values.to_csv()
         elif p_return_type=="md":
-            return_value = agg_values.to_markdown()
+            stats_value = agg_values.to_markdown()
         elif p_return_type=="html":
-            return_value = agg_values.to_html()
+            stats_value = agg_values.to_html()
         else:
-            return_value = agg_values 
+            stats_value = agg_values 
 
-        return return_value
+        return stats_value
 
-        # ---------------------------------
+
+    def __pip_outdated(self, p_filename):
+        # p_parent:str, 
+        #                p_path_name:str, 
+        #                p_filename: str ):
+        # # ---------------------------------
         # Capture outdated installed packages
-        outfile = utilities.get_filename(p_filename="outdated_packages.txt",
+        print("inside pip_outdated")
+        # print(f"{p_parent}")
+        # outfile = utilities.get_filename(p_filename=p_filename,
+        #                                  p_parent_folder=p_parent,
+        #                                  p_path=p_path_name)
+
+        outfile = utilities.get_filename(p_filename=p_filename,
                                          p_parent_folder=self.parent_folder,
                                          p_path=self.report_folder)
 
-
         command = ["pip", "list","--outdated"]
+        print(f"command : {command}")
 
         with open(outfile, "w") as f:
             result = subprocess.run(command, stdout=f, text=True, stderr=subprocess.PIPE)
@@ -183,11 +177,13 @@ class Diagnostics():
         if result.returncode != 0:
             logger.info("Error generating %s", outfile)
 
-
+        return result.returncode
 
     def __make_predictions(self, df:pd.DataFrame, model):
         # ---------------------------------
         # make predictions
+        func_name = inspect.currentframe().f_code.co_name
+
 
         logging.info("Making predictions")
         try:
@@ -222,6 +218,70 @@ class Diagnostics():
 
         return predict_output
     
+    def run_diagnostics(self, p_diag_list:list=['all']) -> str:
+        # https://stackoverflow.com/questions/5067604/determine-function-name-from-within-that-function
+        # func_name = inspect.currentframe().f_back.f_code.co_name
+        func_name = inspect.currentframe().f_code.co_name
+
+        diag_list = ['prediction','null', 'stat', 'timing'] if "all" in p_diag_list   else p_diag_list
+
+        model = utilities.load_model(p_model_file_name = self.model_file_name,
+                                     p_parent_folder   = self.parent_folder,
+                                     p_model_path_name = self.model_path_name)
+
+        df = utilities.load_dataset(p_parent_folder = self.parent_folder,
+                                    p_data_folder   = self.data_folder,
+                                    p_data_files    = self.data_files)
+        
+
+        print(f"p_diag_list : {diag_list}")
+        pred_path = ""
+        if "prediction" in diag_list:
+            print('call prediction')
+            pred_path= self.__make_predictions(df, model)
+
+        null_value = ''
+        if "null" in diag_list:
+            print('call null')
+            null_value = self.__find_null_values(df)
+
+        stats_value = ''
+        if "stat" in diag_list:
+            print('call stat')
+            stats_value = self.__capture_statistics(p_df=df,  p_return_type="df")
+
+
+        if "timing" in diag_list:
+            ingestion_time = self._time_ingestion(10)
+            training_time  = self._time_training(10)
+            
+            logging.info(f"Ingestion time : {ingestion_time:.6f} seconds")
+            logging.info(f"Training time  : {training_time:.6f} seconds")
+
+
+            outfile = utilities.get_filename(p_filename=self.timing_filename ,
+                                            p_parent_folder=self.parent_folder,
+                                            p_path=self.report_folder )
+
+            with open(outfile, 'w+') as f:
+                exec_date = datetime.now().strftime('%m/%d/%Y %H:%M:%S')
+
+                f.write("dte, process, execute time (secs)\n")
+                f.write(f"{exec_date},ingestion,{ingestion_time}\n")
+                f.write(f"{exec_date},training ,{training_time}\n")
+
+
+
+        print("  pip_outdated")
+        print(f"{self.parent_folder}")
+
+        self.__pip_outdated(p_filename  ="outdated_packages.txt")
+        # self.__pip_outdated(p_parent    = self.parent_folder,
+        #                     p_path_name = self.report_folder,
+        #                     p_filename  ="outdated_packages.txt")
+
+        return pred_path, null_value, stats_value
+
 
     def __time_ingestion_setup(self):
         '''
@@ -327,10 +387,12 @@ def go(args):
             print(f"inside go and in scope of mlflow.start_run")
             
             try:
-                path = diagnostics.run_diagnostics()
-                print(f"y_pred : %s", path)
+                pred_path, null_value, stats_value = diagnostics.run_diagnostics()
+                print(f"y_pred : %s", pred_path)
 
-                mlflow.log_artifact(path)
+                mlflow.log_artifact(pred_path)
+                # mlflow.log_artifact(null_value)
+                # mlflow.log_artifact(stats_value)
 
             except Exception as err:
                 logger.error(f"Error running diagnostics %s", err)
@@ -338,31 +400,31 @@ def go(args):
     else:
         try: 
             logger.info("training without logging")
-            path = diagnostics.run_diagnostics()
-            mlflow.log_artifact(path)
+            pred_path, null_value, stats_value  = diagnostics.run_diagnostics()
+            mlflow.log_artifact(pred_path)
 
         except Exception as err:
             logger.error(f"Error running diagnostics w/o logging %s", err)
             return False
         
     
-    ingestion_time = diagnostics._time_ingestion(10)
-    training_time = diagnostics._time_training(10)
+    # ingestion_time = diagnostics._time_ingestion(10)
+    # training_time = diagnostics._time_training(10)
     
-    logging.info(f"Ingestion time : {ingestion_time:.6f} seconds")
-    logging.info(f"Training time  : {training_time:.6f} seconds")
+    # logging.info(f"Ingestion time : {ingestion_time:.6f} seconds")
+    # logging.info(f"Training time  : {training_time:.6f} seconds")
 
 
-    outfile = utilities.get_filename(p_filename=diagnostics.timing_filename,
-                                     p_parent_folder=diagnostics.parent_folder,
-                                     p_path=diagnostics.report_folder)
+    # outfile = utilities.get_filename(p_filename=diagnostics.timing_filename,
+    #                                  p_parent_folder=diagnostics.parent_folder,
+    #                                  p_path=diagnostics.report_folder)
 
-    with open(outfile, 'w+') as f:
-        exec_date = datetime.now().strftime('%m/%d/%Y %H:%M:%S')
+    # with open(outfile, 'w+') as f:
+    #     exec_date = datetime.now().strftime('%m/%d/%Y %H:%M:%S')
 
-        f.write("dte, process, execute time (secs)\n")
-        f.write(f"{exec_date},ingestion,{ingestion_time}\n")
-        f.write(f"{exec_date},training ,{training_time}\n")
+    #     f.write("dte, process, execute time (secs)\n")
+    #     f.write(f"{exec_date},ingestion,{ingestion_time}\n")
+    #     f.write(f"{exec_date},training ,{training_time}\n")
     
 
 

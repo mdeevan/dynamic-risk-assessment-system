@@ -14,6 +14,7 @@ import ast
 import inspect
 import timeit
 from datetime import datetime
+import subprocess
 
 sys.path.append("../")
 from data_ingestion.ingestion import Ingest_Data
@@ -161,18 +162,34 @@ class Diagnostics():
 
         # ---------------------------------
         # Find an record null values in each of the columns
-
         outfile = utilities.get_filename(p_filename="null_values.csv",
                                          p_parent_folder=self.parent_folder,
                                          p_path=self.report_folder)
         pd.DataFrame(df.isna().sum()).T.to_csv(outfile, index=False)
 
+        # ---------------------------------
+        # Capture statistics of numeric columns (mean, median, std)
         outfile = utilities.get_filename(p_filename="statistics.csv",
                                          p_parent_folder=self.parent_folder,
                                          p_path=self.report_folder)
         (df[self.num_features].agg((['mean','median','std']))
                                 .T.reset_index()
                                 .to_csv(outfile, index=False))
+
+        # ---------------------------------
+        # Capture outdated installed packages
+        outfile = utilities.get_filename(p_filename="outdated_packages.txt",
+                                         p_parent_folder=self.parent_folder,
+                                         p_path=self.report_folder)
+        
+        command = ["pip", "list","--outdated"]
+
+        with open(outfile, "w") as f:
+            result = subprocess.run(command, stdout=f, text=True, stderr=subprocess.PIPE)
+
+        if result.returncode != 0:
+            logger.info("Error generating %s", outfile)
+
 
 
         # ---------------------------------
@@ -304,12 +321,6 @@ class Diagnostics():
         logging.debug(f"Training execution time with {p_iterations} iterations : {execution_time}")
 
         return execution_time
-
-
-    def __time_training(self, p_iterations: int = 1):
-        pass
-
-
 
 def go(args):
 

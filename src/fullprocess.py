@@ -1,7 +1,7 @@
 
 
 import o_training
-import scoring
+import o_scoring
 import deployment
 import diagnostics
 import reporting

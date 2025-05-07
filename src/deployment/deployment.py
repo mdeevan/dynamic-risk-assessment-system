@@ -9,16 +9,13 @@ import mlflow
 import inspect
 import os
 import shutil
-
+import sys
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
 
-
-# (trainedmodel.pkl), 
-# your model score (
-#     latestscore.txt), and a record of your ingested data (
-#         ingestedfiles.txt
+sys.path.append("../")
+from lib import utilities
 
 class Production_Deployment():
 
@@ -36,75 +33,82 @@ class Production_Deployment():
         self.mlflow_logging = args.mlflow_logging
         self.parent_folder = "../../"
 
-    def __get_filename(self, p_filename:str, p_path:str=None) -> str:
-        '''
-        Form and return a filename
-        Input:
-                    p_filename : str - filename 
-            p_path : str - path where the filename is stored/created
+    # def __get_filename(self, p_filename:str, p_path:str=None) -> str:
+    #     '''
+    #     Form and return a filename
+    #     Input:
+    #                 p_filename : str - filename 
+    #         p_path : str - path where the filename is stored/created
 
-        return:
-            None
-        '''
+    #     return:
+    #         None
+    #     '''
 
-        filename = os.path.join(self.parent_folder, p_path, p_filename)
-        logger.info(f"_-get-filename : {filename}")
-        return filename
+    #     filename = os.path.join(self.parent_folder, p_path, p_filename)
+    #     logger.info(f"_-get-filename : {filename}")
+    #     return filename
 
 
-    def __make_dir(self, p_parent:str, p_folder:str) -> str:
-        '''
-        make a folder, if it doesn;'t already exists
+    # def __make_dir(self, p_parent:str, p_folder:str) -> str:
+    #     '''
+    #     make a folder, if it doesn;'t already exists
 
-        INPUT:
-            p_parent: str : parent folder path
-            p_folder: str : folder name to check and create
-        RETURN:
-            bool : created or failed in creating the folder
-        '''
+    #     INPUT:
+    #         p_parent: str : parent folder path
+    #         p_folder: str : folder name to check and create
+    #     RETURN:
+    #         bool : created or failed in creating the folder
+    #     '''
 
-        # parent = self.parent_folder if p_parent is None else p_parent
-        # folder = self.report_folder if p_folder is None else p_folder
+    #     # parent = self.parent_folder if p_parent is None else p_parent
+    #     # folder = self.report_folder if p_folder is None else p_folder
 
-        try:
-            folder_name = os.path.join(p_parent, p_folder)
+    #     try:
+    #         folder_name = os.path.join(p_parent, p_folder)
 
-            if (not os.path.isdir(folder_name)):
-                os.mkdir(folder_name)
+    #         if (not os.path.isdir(folder_name)):
+    #             os.mkdir(folder_name)
 
-        except Exception as err:
-            logging.info(f"Error creating folder : %s", folder_name)
-            raise
-            # return False
+    #     except Exception as err:
+    #         logging.info(f"Error creating folder : %s", folder_name)
+    #         raise
+    #         # return False
 
-        return folder_name
+    #     return folder_name
 
 
 
     def run_model_deploy(self) -> float:
         func_name = inspect.currentframe().f_code.co_name
 
-        prod_folder = self.__make_dir(self.parent_folder,
-                                      self.prod_deployment_path)
+        prod_folder = utilities.make_dir(self.parent_folder,
+                                         self.prod_deployment_path)
 
         files_to_copy = []
-        model_file = self.__get_filename(p_path=self.model_path_name,
-                                         p_filename=self.output_model_name )
+        model_file = utilities.get_filename(p_filename=self.output_model_name,
+                                            p_parent_folder=self.parent_folder,
+                                            p_path=self.model_path_name )
 
-        score_file = self.__get_filename(p_path=self.model_path_name, 
-                                         p_filename=self.score_filename )
+        score_file = utilities.get_filename(p_filename=self.score_filename,
+                                            p_parent_folder=self.parent_folder,
+                                            p_path=self.model_path_name )
 
-        ingested_file = self.__get_filename(p_path=self.ingested_data_path,
-                                            p_filename=self.ingested_filename )
+        ingested_file = utilities.get_filename(p_filename=self.ingested_filename,
+                                               p_parent_folder=self.parent_folder,
+                                               p_path=self.ingested_data_path )
 
-        ingested_files_log = self.__get_filename(p_path=self.ingested_data_path,
-                                            p_filename=self.ingested_files_log )
+        ingested_files_log = utilities.get_filename(p_filename=self.ingested_files_log,
+                                                    p_parent_folder=self.parent_folder,
+                                                    p_path=self.ingested_data_path
+                                                    )
 
         files_to_copy.append(model_file)
         files_to_copy.append(score_file)
         files_to_copy.append(ingested_file)
         files_to_copy.append(ingested_files_log)
 
+
+        logging.debug(f"files to copy : {files_to_copy}")
         try:
             for file in files_to_copy:
                 shutil.copy(file, prod_folder)
@@ -114,8 +118,6 @@ class Production_Deployment():
             raise
 
         return True
-
-
 
 
 def go(args):

@@ -14,8 +14,9 @@ _steps = [
     "scoring",
     "deployment",
     "diagnostics",
-    "reporting",
+    "reporting"
 ]
+
 
 
 def __run_ingestion(filename, cfg):

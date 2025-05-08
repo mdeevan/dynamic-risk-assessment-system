@@ -3,6 +3,7 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 import numpy as np
 from sklearn import metrics
+from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
 import json
@@ -12,6 +13,7 @@ import sys
 import yaml
 import logging
 import argparse
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
@@ -72,13 +74,33 @@ class Reporting():
                                               p_path         =self.diagnostic_instance.report_folder
                                             )
 
-        with open(predict_path, "r") as stream:
-            predict_output = stream.read()
+        df = utilities.read_file(predict_path)
 
-        print(f"predict_output : {predict_output}" )
+        # https://www.kaggle.com/code/agungor2/various-confusion-matrix-plots
+
+        plt.figure(figsize = (6,4))
+
+        data = confusion_matrix(df['target'], df['predicted'])
+
+        df_cm = pd.DataFrame(data, 
+                             columns=np.unique(df['predicted']), 
+                             index = np.unique(df['target']))
+
+        df_cm.index.name = 'Actual'
+        df_cm.columns.name = 'Predicted'
+
+        sns.heatmap(df_cm, cmap="Blues", annot=True, annot_kws={"size": 12})# font size
+        plt.savefig("confusion_matrix.png")
+
+        out_path = utilities.get_filename(p_filename     ="confusionmatrix.png",
+                                          p_parent_folder=self.diagnostic_instance.parent_folder,
+                                          p_path         =self.diagnostic_instance.model_path_name
+                                            )
 
 
-        pass
+        plt.savefig(out_path)
+        
+
 
 
 ###############Load config.json and get path variables

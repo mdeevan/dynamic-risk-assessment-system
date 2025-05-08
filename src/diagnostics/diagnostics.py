@@ -166,7 +166,7 @@ class Diagnostics():
         # func_name = inspect.currentframe().f_back.f_code.co_name
         func_name = inspect.currentframe().f_code.co_name
 
-        diag_list = ['prediction','null', 'stat', 'timing'] if "all" in p_diag_list   else p_diag_list
+        diag_list = ['prediction','null', 'stat', 'timing','outdated'] if "all" in p_diag_list   else p_diag_list
 
         model = utilities.load_model(p_model_file_name = self.model_file_name,
                                      p_parent_folder   = self.parent_folder,
@@ -215,13 +215,14 @@ class Diagnostics():
 
 
 
-        print("  pip_outdated")
-        print(f"{self.parent_folder}")
+        if "outdated" in diag_list:
+            print("  pip_outdated")
+            print(f"{self.parent_folder}")
 
-        self.__pip_outdated(p_filename  ="outdated_packages.txt")
-        # self.__pip_outdated(p_parent    = self.parent_folder,
-        #                     p_path_name = self.report_folder,
-        #                     p_filename  ="outdated_packages.txt")
+            self.__pip_outdated(p_filename  ="outdated_packages.txt")
+            # self.__pip_outdated(p_parent    = self.parent_folder,
+            #                     p_path_name = self.report_folder,
+            #                     p_filename  ="outdated_packages.txt")
 
         return pred_path, null_value, stats_value
 

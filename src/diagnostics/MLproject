@@ -36,10 +36,6 @@ entry_points:
         description: prediction output file name
         type: string
 
-      score_filename:
-        description: score filename
-        type: string
-
       timing_filename:
         description: filename to save the ingestion and training timing
         type: string
@@ -66,7 +62,6 @@ entry_points:
                               --report_folder {report_folder} \
                               --temp_folder {temp_folder} \
                               --prediction_output {prediction_output} \
-                              --score_filename {score_filename} \
                               --timing_filename {timing_filename} \
                               --num_features {num_features} \
                               --lr_params {lr_params} \

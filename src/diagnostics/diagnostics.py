@@ -39,16 +39,16 @@ class Diagnostics():
         self.ingested_file     = args.ingested_file
         self.report_folder     = args.report_folder
         self.prediction_output = args.prediction_output
-        self.score_filename    = args.score_filename
+        # self.score_filename    = args.score_filename
         self.timing_filename   = args.timing_filename
         self.mlflow_logging    = args.mlflow_logging
         self.temp_folder       = args.temp_folder
-        self.parent_folder     = "../../"
+        self.parent_folder     = args.parent_folder #"../../"
         self.arg_num_features  = args.num_features
         self.arg_lr_params     = args.lr_params
         # self.lr_params         = ast.literal_eval(args.lr_params.replace("'None'", 'None'))
 
-        if (num_features is not None):
+        if (args.num_features is not None):
             num_features = ast.literal_eval(args.num_features) 
         
         self.num_features = num_features
@@ -351,25 +351,6 @@ def go(args):
             return False
         
     
-    # ingestion_time = diagnostics._time_ingestion(10)
-    # training_time = diagnostics._time_training(10)
-    
-    # logging.info(f"Ingestion time : {ingestion_time:.6f} seconds")
-    # logging.info(f"Training time  : {training_time:.6f} seconds")
-
-
-    # outfile = utilities.get_filename(p_filename=diagnostics.timing_filename,
-    #                                  p_parent_folder=diagnostics.parent_folder,
-    #                                  p_path=diagnostics.report_folder)
-
-    # with open(outfile, 'w+') as f:
-    #     exec_date = datetime.now().strftime('%m/%d/%Y %H:%M:%S')
-
-    #     f.write("dte, process, execute time (secs)\n")
-    #     f.write(f"{exec_date},ingestion,{ingestion_time}\n")
-    #     f.write(f"{exec_date},training ,{training_time}\n")
-    
-
 
 if __name__ == "__main__":
 
@@ -426,12 +407,12 @@ if __name__ == "__main__":
         help="output from predictions ",
         required=True
     )
-    parser.add_argument(
-        "--score_filename", 
-        type=str,
-        help="filename to store the score ",
-        required=True
-    )
+    # parser.add_argument(
+    #     "--score_filename", 
+    #     type=str,
+    #     help="filename to store the score ",
+    #     required=True
+    # )
     parser.add_argument(
         "--timing_filename", 
         type=str,
@@ -448,6 +429,14 @@ if __name__ == "__main__":
         "--lr_params", 
         type=str,
         help='logistic regression model tuning parameters',
+        required=False
+    )
+
+    parser.add_argument(
+        "--parent_folder", 
+        type=str,
+        help='parent folder',
+        default="../../",
         required=False
     )
 

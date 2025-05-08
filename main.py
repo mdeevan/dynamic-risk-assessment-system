@@ -103,7 +103,7 @@ def __run_diagnostics(filename, cfg):
             "ingested_file"    : cfg["ingestion"]["ingested_filename"],
             "report_folder"    : cfg["diagnostics"]["report_folder"],
             "prediction_output": cfg["diagnostics"]["prediction_output"],
-            "score_filename"   : cfg["diagnostics"]["score_filename"],
+            # "score_filename"   : cfg["diagnostics"]["score_filename"],
             "timing_filename"  : cfg["diagnostics"]["timing_filename"],
             "temp_folder"      : cfg["diagnostics"]["temp_folder"],
             "num_features"     : cfg["num_features"],

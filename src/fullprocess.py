@@ -3,7 +3,7 @@
 import o_training
 import o_scoring
 import deployment
-import diagnostics
+import o_diagnostics
 import reporting
 
 ##################Check and read new data

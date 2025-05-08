@@ -6,11 +6,28 @@ import argparse
 import logging
 import dagshub
 import mlflow
+import inspect
+import sys
+import yaml
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
 
+sys.path.append("../")
+
+from diagnostics.diagnostics import Diagnostics
+from lib import utilities
+
+
+class Reporting():
+
+    def __init__(self, args):
+        pass
+
+
+    def generate_confusion_matrix(self):
+        pass
 
 def go(args):
 

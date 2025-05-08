@@ -18,6 +18,7 @@ mlflow                 2.21.3    2.22.0    wheel
 mlflow-skinny          2.21.3    2.22.0    wheel
 packaging              24.2      25.0      wheel
 pip                    25.0.1    25.1.1    wheel
+platformdirs           4.3.7     4.3.8     wheel
 protobuf               5.29.4    6.30.2    wheel
 pyarrow                19.0.1    20.0.0    wheel
 pydantic               2.11.3    2.11.4    wheel

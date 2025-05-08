@@ -48,74 +48,11 @@ class Diagnostics():
         self.arg_lr_params     = args.lr_params
         # self.lr_params         = ast.literal_eval(args.lr_params.replace("'None'", 'None'))
 
-
-        num_features = ast.literal_eval(args.num_features) 
+        if (num_features is not None):
+            num_features = ast.literal_eval(args.num_features) 
+        
         self.num_features = num_features
 
-    # def __load_model(self):
-    #     # https://stackoverflow.com/questions/5067604/determine-function-name-from-within-that-function
-
-    #     func_name = inspect.currentframe().f_code.co_name
-
-    #     # load model
-    #     logging.info("Loading deployed model")
-    #     # model_loc = self.__get_filename(self.model_file_name, self.model_path_name)
-    #     model_loc = utilities.get_filename(p_filename = self.model_file_name,
-    #                                        p_parent_folder=self.parent_folder,
-    #                                        p_path =self.model_path_name)
-
-    #     logging.info("\nafter calling utitlies \n")
-    #     try:
-
-    #         logging.info(f"Loading deployed model %s", model_loc)
-    #         file = open(model_loc, 'rb')
-    #         model = pickle.load(file)
-
-    #     except Exception as err:
-    #         logging.error(f"%s: error loading model %s", func_name, err)
-    #         raise
-
-    #     return model
-
-    # def __load_dataset(self) -> pd.DataFrame:
-    #     logging.info("Loading test data")
-    #     try:
-
-    #         df = pd.DataFrame()
-    #         test_data_folder = os.path.join(self.parent_folder, self.data_folder)
-    #         logging.debug(f"Diagnostic test data folder: {test_data_folder} , \
-    #                                 parent={self.parent_folder}, \
-    #                                 data folder={self.data_folder}")
-
-    #         # Process all files in the data folder 
-    #         # alternate is to process a single file as configured in config.yaml
-    #         if self.data_files == "*":
-    #             # files = [f for f in os.listdir(test_data_folder) 
-    #             #         if os.path.isfile(self.__get_filename(f))]
-    #             files = [f for f in os.listdir(test_data_folder) 
-    #                         if os.path.isfile(utilities.get_filename(p_filename=f,
-    #                                                                  p_parent_folder=self.parent_folder,
-    #                                                                  p_path=self.data_folder
-    #                                                                  ))]
-    #         else:
-    #             files = [self.data_files]
-
-    #         for file in files:
-    #             # filename = self.__get_filename(file)            
-    #             filename = utilities.get_filename(p_filename=file,
-    #                                               p_parent_folder=self.parent_folder,
-    #                                               p_path=self.data_folder
-    #                                               )            
-
-    #             # df_new = self.__read_file(filename)
-    #             df_new = utilities.read_file(filename)
-    #             df = pd.concat([df, df_new], axis=0)         
-   
-    #     except Exception as err:
-    #         logging.error(f"%s: error diagnostic reading test data %s", func_name, err)
-    #         raise
-
-        # load dataset
 
     def __find_null_values(self, df) -> str:
         # ---------------------------------
@@ -179,13 +116,19 @@ class Diagnostics():
 
         return result.returncode
 
-    def __make_predictions(self, df:pd.DataFrame, model):
+    def __make_predictions(self, df:pd.DataFrame,  model=None):
         # ---------------------------------
         # make predictions
         func_name = inspect.currentframe().f_code.co_name
 
 
         logging.info("Making predictions")
+
+        if model is None:
+            model = utilities.load_model(p_model_file_name = self.model_file_name,
+                                p_parent_folder   = self.parent_folder,
+                                p_model_path_name = self.model_path_name)
+
         try:
             y_pred = None
             if df is not None:

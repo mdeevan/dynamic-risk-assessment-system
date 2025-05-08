@@ -5,8 +5,7 @@ main:
   mlflow_logging: True
 
 ingestion:
-  ingestion_path: "practicedata"
-  # all files in the folder
+  ingestion_path     : "practicedata"
   ingestion_filename : ['*']
   ingested_data_path : "ingesteddata" 
   output_path        : "ingesteddata" 
@@ -30,8 +29,6 @@ prod_deployment:
   output_model_name: "trainedmodel.pkl"
 
 diagnostics:
-  prod_deployment_path: "production_deployment" 
-  output_model_name   : "trainedmodel.pkl"
   data_folder         : "practicedata"
   data_files          : ["*"]
   report_folder       : "report"
@@ -45,6 +42,9 @@ num_features:
 - lastyear_activity
 - number_of_employees
 - exited
+
+reporting:
+  test_data_path : "testdata"
 
 logistic_regression_params:
 - C : 1.0

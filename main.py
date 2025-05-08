@@ -14,7 +14,7 @@ _steps = [
     "scoring",
     "deployment",
     "diagnostics",
-    "reporting"
+    # "reporting"
 ]
 
 
@@ -96,8 +96,8 @@ def __run_diagnostics(filename, cfg):
         entry_point="main",
         env_manager="conda",
         parameters={
-            "model_path_name"  : cfg["diagnostics"]["prod_deployment_path"],
-            "model_file_name"  : cfg["diagnostics"]["output_model_name"],
+            "model_path_name"  : cfg["prod_deployment"]["prod_deployment_path"],
+            "model_file_name"  : cfg["prod_deployment"]["output_model_name"],
             "data_folder"      : cfg["diagnostics"]["data_folder"],
             "data_files"       : cfg["diagnostics"]["data_files"],
             "ingested_file"    : cfg["ingestion"]["ingested_filename"],

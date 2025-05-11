@@ -13,6 +13,7 @@ import sys
 import yaml
 import logging
 import argparse
+import subprocess
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
@@ -49,17 +50,6 @@ class Diagnostics():
         except Exception as err:
             self.model = None
             logging.error(f"Error loading Model %s", err)
-
-        # try:
-        #     df = utilities.load_dataset(p_parent_folder = self.parent_folder,
-        #                                 p_data_folder   = self.data_folder,
-        #                                 p_data_files    = self.data_files)
-        # except Exception as err:
-        #     logging.error(f"Error loading data %s", err)
-
-
-
-        # self.diagnostic_instance = self.__get_diagnosic_instance()
 
 
     def find_null_values(self, p_data_path: str = "") -> str:
@@ -99,6 +89,7 @@ class Diagnostics():
     def make_predictions(self, p_data_path: str = "") -> str:
         # ---------------------------------
         
+        print("inside make predictions")
         data_file = p_data_path if (p_data_path != "" ) else ( 
                     utilities.get_filename(p_filename=self.test_data_name, 
                                            p_parent_folder=self.parent_folder,
@@ -126,7 +117,19 @@ class Diagnostics():
         return rtn
         
     
+    def dependencies_status(self ):
+        print("inside pip_outdated")
 
+        command = ["pip", "list","--outdated", "--format", "json"]
+
+        result = subprocess.run(command,  text=True, capture_output=True)#, stderr=subprocess.PIPE)
+
+        if result.returncode != 0:
+            logger.info("Error running command %s", command)
+        else:
+            logger.info("\nSuccess running command %s", command)
+
+        return result.stdout
 
 
 ###############Load config.json and get path variables
@@ -138,9 +141,15 @@ if __name__ == '__main__':
     nv = diagnostics.find_null_values()
     stat = diagnostics.capture_statistics()
     predict = diagnostics.make_predictions()
+    result = diagnostics.dependencies_status()
     
+    print("\n--------------\n null values \n")
     print(nv)
+    print("\n--------------\n statistics \n")
     print(stat)
+    print("\n--------------\n predication \n")
     print(predict)
+    print("\n--------------\n dependencies \n")
+    print(result )
 
 

@@ -26,37 +26,46 @@ logger = logging.getLogger()
 
 class Train_Model():
 
-    def __init__(self, args):
-        self.ingested_data_path = args.ingested_data_path
-        self.ingestion_filename = args.ingestion_filename
-        self.out_path = args.out_path
-        self.out_model = args.out_model
-        self.parent_folder = "../../"
-        self.num_features =""
-        self.mlflow_logging = args.mlflow_logging
+    def __init__(self, 
+                p_ingested_data_path ,
+                p_ingestion_filename ,
+                p_out_path ,
+                p_out_model ,
+                p_parent_folder,
+                p_num_features ,
+                p_lr_params ,
+                p_mlflow_logging , 
+                 ):
 
-        logging.debug("\n training.py -> incoming:")
-        logging.debug(f"args.num_features :{type(args.num_features)} -> {args.num_features}")
-        logging.debug("\n")
-        logging.debug(f"args.lr_params : {type(args.lr_params)} -> {args.lr_params}")
-        logging.debug("\n")
+        self.ingested_data_path = p_ingested_data_path
+        self.ingestion_filename = p_ingestion_filename
+        self.out_path = p_out_path
+        self.out_model = p_out_model
+        self.parent_folder = p_parent_folder
+        self.mlflow_logging = p_mlflow_logging
 
-        logging.debug("\n training.py -> conversion:")
+        # logging.debug("\n training.py -> incoming:")
+        # logging.debug(f"args.num_features :{type(args.num_features)} -> {args.num_features}")
+        # logging.debug("\n")
+        # logging.debug(f"args.lr_params : {type(args.lr_params)} -> {args.lr_params}")
+        # logging.debug("\n")
+
+        # logging.debug("\n training.py -> conversion:")
         
         # num_features is a list parameter with string values but passed in as string.
         # convering the string into a list with ast.literal_eval 
 
-        logging.debug(f"training.py args : \n{args}")
+        # logging.debug(f"training.py args : \n{args}")
 
-        num_features = ast.literal_eval(args.num_features) 
-        logging.debug(f"args.num_features :{type(num_features)} -> {num_features}")
-        logging.debug("\n")
+        # num_features = ast.literal_eval(args.num_features) 
+        # logging.debug(f"args.num_features :{type(num_features)} -> {num_features}")
+        # logging.debug("\n")
 
-        # lr_params is a dictionary of mixed types but passed in as string.
-        # convering the string into a list with ast.literal_eval 
-        lr_params = ast.literal_eval(args.lr_params.replace("'None'", 'None'))
-        logging.debug(f"args.lr_params : {type(lr_params)} -> {lr_params}")
-        logging.debug("\n")
+        # # lr_params is a dictionary of mixed types but passed in as string.
+        # # convering the string into a list with ast.literal_eval 
+        # lr_params = ast.literal_eval(args.lr_params.replace("'None'", 'None'))
+        # logging.debug(f"args.lr_params : {type(lr_params)} -> {lr_params}")
+        # logging.debug("\n")
 
         # nf=args.num_features.replace("'", '"')
         # print (f"type of nf: {type(nf)}")
@@ -80,23 +89,25 @@ class Train_Model():
         # print(f"lrp type {type(lrp)}")
         # print(f"args -lrp - C{lrp['C']}")
 
-        self.num_features = num_features
-        
-        self.C  = lr_params['C'] 
-        self.class_weight  = lr_params['class_weight'] 
-        self.dual  = lr_params['dual'] 
-        self.fit_intercept  = lr_params['fit_intercept'] 
-        self.intercept_scaling = lr_params['intercept_scaling']  
-        self.l1_ratio  = lr_params['l1_ratio'] 
-        self.max_iter  = lr_params['max_iter'] 
-        # self.multi_class = lr_params['multi_class']  
-        self.n_jobs   = lr_params['n_jobs']  
-        self.penalty  = lr_params['penalty'] 
-        self.random_state   = lr_params['random_state']  
-        self.solver   = lr_params['solver']  
-        self.tol   = lr_params['tol']  
-        self.verbose  = lr_params['verbose'] 
-        self.warm_start  = lr_params['warm_start'] 
+        self.num_features = p_num_features
+
+        print(f"p_num_featues : \n{p_num_features}")
+
+        self.C  = p_lr_params[0]['C'] 
+        self.class_weight  = p_lr_params[0]['class_weight'] 
+        self.dual  = p_lr_params[0]['dual'] 
+        self.fit_intercept  = p_lr_params[0]['fit_intercept'] 
+        self.intercept_scaling = p_lr_params[0]['intercept_scaling']  
+        self.l1_ratio  = p_lr_params[0]['l1_ratio'] 
+        self.max_iter  = p_lr_params[0]['max_iter'] 
+        # self.multi_class = p_lr_params[0]['multi_class']  
+        self.n_jobs   = p_lr_params[0]['n_jobs']  
+        self.penalty  = p_lr_params[0]['penalty'] 
+        self.random_state   = p_lr_params[0]['random_state']  
+        self.solver   = p_lr_params[0]['solver']  
+        self.tol   = p_lr_params[0]['tol']  
+        self.verbose  = p_lr_params[0]['verbose'] 
+        self.warm_start  = p_lr_params[0]['warm_start'] 
 
 
         # with open("params.yml") as stream:
@@ -109,34 +120,6 @@ class Train_Model():
         #         print(exc)
 
 
-    # def __get_filename(self, p_filename:str, p_path:str=None) -> str:
-    #     '''
-    #     Form and return a filename
-    #     Input:
-    #                 p_filename : str - filename 
-    #         p_path : str - path where the filename is stored/created
-
-    #     return:
-    #         None
-    #     '''
-
-    #     path = self.ingested_data_path if (p_path is None) else p_path
-
-    #     filename = os.path.join(self.parent_folder, path, p_filename)
-    #     logger.info(f"_-get-filename : {filename}")
-    #     return filename
-
-
-    # def __read_file(self, filename:str) -> pd.DataFrame:
-    #     '''
-    #     read csv into panda framework
-
-    #     INPUT:
-    #         filename : csv files to read
-    #     RETURN:
-    #         pd.DataFrme : panda dataframe
-    #     '''
-    #     return pd.read_csv(filename)
 
 
     def train_model(self) -> str:
@@ -244,7 +227,16 @@ def go(args):
     logging.debug("\n ")
 
 
-    train_model = Train_Model(args)
+    train_model = Train_Model(
+            p_ingested_data_path = args.ingested_data_path ,
+            p_ingestion_filename = args.ingestion_filename ,
+            p_out_path = args.out_path ,
+            p_out_model = args.out_model ,
+            p_parent_folder = "../../" ,
+            p_num_features = ast.literal_eval(args.num_features)  ,
+            p_lr_params = ast.literal_eval(args.lr_params.replace("'None'", 'None')) ,
+            p_mlflow_logging = args.mlflow_logging ,
+        )
     
 
     logging.debug(f"args.mlflow_logging : {train_model.mlflow_logging}")

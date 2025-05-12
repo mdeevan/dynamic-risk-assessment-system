@@ -14,12 +14,15 @@ import yaml
 import logging
 import argparse
 import subprocess
+import timeit
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
 
 from lib import utilities
+from data_ingestion.ingestion import Ingest_Data
+from training.training import Train_Model
 
 class Diagnostics():
 
@@ -41,6 +44,7 @@ class Diagnostics():
         self.test_data_path  = self.cfg['scoring']['test_data_path']
         self.test_data_name  = "testdata.csv"
         self.num_features    = self.cfg['num_features']
+        self.lr_params       = self.cfg['logistic_regression_params']
 
 
         try:
@@ -52,16 +56,33 @@ class Diagnostics():
             logging.error(f"Error loading Model %s", err)
 
 
+        try:
+            filename = utilities.get_filename(p_filename=self.test_data_name, 
+                                              p_parent_folder=self.parent_folder,
+                                              p_path=self.test_data_path)
+            
+            self.df = utilities.read_file(filename)
+
+        except Exception as err:
+            self.df = None
+            logging.error(f"Error loading test df : %s", err)
+
+
     def find_null_values(self, p_data_path: str = "") -> str:
         # ---------------------------------
         
-        data_file = p_data_path if (p_data_path != "" ) else ( 
-                    utilities.get_filename(p_filename=self.test_data_name, 
-                                           p_parent_folder=self.parent_folder,
-                                           p_path=self.test_data_path)
-        )
+        # data_file = p_data_path if (p_data_path != "" ) else ( 
+        #             utilities.get_filename(p_filename=self.test_data_name, 
+        #                                    p_parent_folder=self.parent_folder,
+        #                                    p_path=self.test_data_path)
+        # )
 
-        df = utilities.read_file(data_file)
+        if (p_data_path == ""):
+            df = self.df
+        else:
+            df = utilities.read_file(p_data_path)
+
+
         null_values = df.isna().sum() 
         rtn = pd.DataFrame(null_values).T.to_json(index=False)
 
@@ -116,7 +137,6 @@ class Diagnostics():
 
         return rtn
         
-    
     def dependencies_status(self ):
         print("inside pip_outdated")
 
@@ -131,25 +151,91 @@ class Diagnostics():
 
         return result.stdout
 
+                                # ingestion_path ,
+                                # ingestion_filename ,
+                                # out_path ,
+                                # out_file ,
+                                # ingested_files_log ,
+                                # mlflow_logging ,
+                                # parent_folder 
 
-###############Load config.json and get path variables
+    def __timing_ingestion_command(self):
+
+        ingest_data = Ingest_Data(
+            p_ingestion_path = self.test_data_path,
+            p_ingestion_filename  = self.test_data_name,
+            p_out_path = "temp",
+            p_out_file = "temp",
+            p_ingested_files_log = "templog",
+            p_mlflow_logging = False,
+            p_parent_folder = "./"
+        )
+
+        ingest_data.process_files()
+
+    def timing_ingestion(self, p_iterations=10):  
+
+        logging.info("inside time_ingestion")
+
+        t = timeit.Timer(self.__timing_ingestion_command )
+        execution_time = t.timeit(p_iterations)
+        logging.debug(f"INGESTION execution time with {p_iterations} iterations : {execution_time}")
+
+        return execution_time
+
+    def __timing_training_command(self):
+        train_model = Train_Model(
+            p_ingested_data_path = "temp", # from ingested timing method
+            p_ingestion_filename  = self.test_data_name,
+            p_out_path = "temp",
+            p_out_model = self.model_name,
+            p_parent_folder = "./" ,
+            p_num_features = self.num_features,
+            p_lr_params = self.lr_params,
+            p_mlflow_logging = False,
+        )
+
+        train_model.train_model()
+
+    def timing_training(self, p_iterations=10):  
+
+        logging.info("inside timing_training")
+
+        t = timeit.Timer(self.__timing_training_command )
+        execution_time = t.timeit(p_iterations)
+        logging.debug(f"TRAINING execution time with {p_iterations} iterations : {execution_time}")
+
+        return execution_time
 
 
 if __name__ == '__main__':
 
     diagnostics = Diagnostics()
-    nv = diagnostics.find_null_values()
-    stat = diagnostics.capture_statistics()
-    predict = diagnostics.make_predictions()
-    result = diagnostics.dependencies_status()
+
+    # nv = diagnostics.find_null_values()
+    # stat = diagnostics.capture_statistics()
+    # predict = diagnostics.make_predictions()
+    # result = diagnostics.dependencies_status()
+    # time_ingestion = diagnostics.timing_ingestion(10)
+    train_ingestion = diagnostics.timing_training(1)
+
+
+
+
     
-    print("\n--------------\n null values \n")
-    print(nv)
-    print("\n--------------\n statistics \n")
-    print(stat)
-    print("\n--------------\n predication \n")
-    print(predict)
-    print("\n--------------\n dependencies \n")
-    print(result )
+    # print("\n--------------\n null values \n")
+    # print(nv)
+    # print("\n--------------\n statistics \n")
+    # print(stat)
+    # print("\n--------------\n predication \n")
+    # print(predict)
+    # print("\n--------------\n dependencies \n")
+    # print(result )
+
+    # print("\n--------------\n ingestion timing \n")
+    # print(time_ingestion )
+
+    print("\n--------------\n training timing \n")
+    print(train_ingestion )
 
 

@@ -22,45 +22,26 @@ logger = logging.getLogger()
 
 class Ingest_Data():
 
-    def __init__(self, args):
-        self.ingestion_path = args.ingestion_path
-        self.ingestion_filename = args.ingestion_filename
-        self.out_path = args.out_path
-        self.out_file = args.out_file
+    def __init__(self,
+                 p_ingestion_path,
+                 p_ingestion_filename,
+                 p_out_path,
+                 p_out_file,
+                 p_ingested_files_log,
+                 p_mlflow_logging,
+                 p_parent_folder = "../../"
+                ):
+        
+        self.ingestion_path = p_ingestion_path
+        self.ingestion_filename = p_ingestion_filename
+        self.out_path = p_out_path
+        self.out_file = p_out_file
 
-        self.ingested_files_log =  args.ingested_files_log
-        self.mlflow_logging = args.mlflow_logging
+        self.ingested_files_log =  p_ingested_files_log
+        self.mlflow_logging = p_mlflow_logging
 
-        self.parent_folder = "../../"
+        self.parent_folder = p_parent_folder
 
-
-    # def __get_filename(self, p_filename:str, p_path:str=None) -> None:
-    #     '''
-    #     Form and return a filename
-    #     Input:
-    #                 p_filename : str - filename 
-    #         p_path : str - path where the filename is stored/created
-
-    #     return:
-    #         None
-    #     '''
-
-    #     path = self.ingestion_path if (p_path is None) else p_path
-
-    #     filename = os.path.join(self.parent_folder, path, p_filename)
-    #     print(f"_-get-filename : {filename}")
-    #     return filename
-
-    # def __read_file(self, filename:str) -> pd.DataFrame:
-    #     '''
-    #     read csv into panda framework
-
-    #     INPUT:
-    #         filename : csv files to read
-    #     RETURN:
-    #         pd.DataFrme : panda dataframe
-    #     '''
-    #     return pd.read_csv(filename)
 
     def process_files(self) -> str:
         '''
@@ -69,7 +50,7 @@ class Ingest_Data():
         INPUT:
             uses instance level variables
 
-                    RETURN:
+                    RETURN: 
             path of the output file
         '''
 
@@ -165,7 +146,24 @@ class Ingest_Data():
 
 def go(args):
 
-    ingest_data = Ingest_Data(args)
+    p_ingestion_path = args.ingestion_path
+    p_ingestion_filename = args.ingestion_filename
+    p_out_path = args.out_path
+    p_out_file = args.out_file
+    p_ingested_files_log =  args.ingested_files_log
+    p_mlflow_logging = args.mlflow_logging
+    p_parent_folder = "../../"
+
+
+    ingest_data = Ingest_Data(
+        p_ingestion_path ,
+        p_ingestion_filename,
+        p_out_path ,
+        p_out_file ,
+        p_ingested_files_log,
+        p_mlflow_logging,
+        p_parent_folder
+    )
 
     # print("Tracking URI:", mlflow.get_tracking_uri())
     # print("Env vars:", {k: v for k, v in os.environ.items() if "MLFLOW" in k or "DAGSHUB" in k})

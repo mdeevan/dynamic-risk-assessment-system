@@ -48,13 +48,13 @@ reporting:
 
 logistic_regression_params:
 - C : 1.0
-  class_weight : None 
+  # class_weight : None 
   dual : False
   fit_intercept : True
   intercept_scaling : 1 
-  l1_ratio : None
+  l1_ratio : 0.0
   max_iter : 100
-  n_jobs : None
+  n_jobs : -1 #
   penalty : 'l2'
   random_state : 0 
   solver : 'liblinear' 

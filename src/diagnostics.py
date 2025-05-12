@@ -41,6 +41,11 @@ class Diagnostics():
         self.parent_folder   = "./"
         self.model_name      = self.cfg["prod_deployment"]["output_model_name"]
         self.model_path_name = self.cfg["prod_deployment"]["prod_deployment_path"]
+
+        self.data_folder     = self.cfg['diagnostics']['data_folder']
+        self.data_files      = self.cfg['diagnostics']['data_files']
+        self.ingested_filename= self.cfg['ingestion']['ingested_filename']
+
         self.test_data_path  = self.cfg['scoring']['test_data_path']
         self.test_data_name  = "testdata.csv"
         self.num_features    = self.cfg['num_features']
@@ -91,13 +96,19 @@ class Diagnostics():
     def capture_statistics(self, p_data_path: str = "") -> str:
         # ---------------------------------
         
-        data_file = p_data_path if (p_data_path != "" ) else ( 
-                    utilities.get_filename(p_filename=self.test_data_name, 
-                                           p_parent_folder=self.parent_folder,
-                                           p_path=self.test_data_path)
-        )
+        # data_file = p_data_path if (p_data_path != "" ) else ( 
+        #             utilities.get_filename(p_filename=self.test_data_name, 
+        #                                    p_parent_folder=self.parent_folder,
+        #                                    p_path=self.test_data_path)
+        # )
 
-        df = utilities.read_file(data_file)
+        # df = utilities.read_file(data_file)
+
+        if (p_data_path == ""):
+            df = self.df
+        else:
+            df = utilities.read_file(p_data_path)
+
         agg_values = (df[self.num_features]
                       .agg((['mean','median','std']))
                       .T.reset_index()).to_json()
@@ -111,13 +122,21 @@ class Diagnostics():
         # ---------------------------------
         
         print("inside make predictions")
-        data_file = p_data_path if (p_data_path != "" ) else ( 
-                    utilities.get_filename(p_filename=self.test_data_name, 
-                                           p_parent_folder=self.parent_folder,
-                                           p_path=self.test_data_path)
-        )
+        # data_file = p_data_path if (p_data_path != "" ) else ( 
+        #             utilities.get_filename(p_filename=self.test_data_name, 
+        #                                    p_parent_folder=self.parent_folder,
+        #                                    p_path=self.test_data_path)
+        # )
 
-        df = utilities.read_file(data_file)
+        # df = utilities.read_file(data_file)
+
+        if (p_data_path == ""):
+            df = self.df
+        else:
+            df = utilities.read_file(p_data_path)
+
+
+
         rtn = None
         try:
             y_pred = None
@@ -162,10 +181,10 @@ class Diagnostics():
     def __timing_ingestion_command(self):
 
         ingest_data = Ingest_Data(
-            p_ingestion_path = self.test_data_path,
-            p_ingestion_filename  = self.test_data_name,
+            p_ingestion_path     = self.data_folder,
+            p_ingestion_filename = self.data_files,
             p_out_path = "temp",
-            p_out_file = "temp",
+            p_out_file = self.ingested_filename,
             p_ingested_files_log = "templog",
             p_mlflow_logging = False,
             p_parent_folder = "./"
@@ -186,13 +205,13 @@ class Diagnostics():
     def __timing_training_command(self):
         train_model = Train_Model(
             p_ingested_data_path = "temp", # from ingested timing method
-            p_ingestion_filename  = self.test_data_name,
-            p_out_path = "temp",
-            p_out_model = self.model_name,
-            p_parent_folder = "./" ,
-            p_num_features = self.num_features,
-            p_lr_params = self.lr_params,
-            p_mlflow_logging = False,
+            p_ingestion_filename = self.ingested_filename ,
+            p_out_path           = "temp" ,
+            p_out_model          = self.model_name ,
+            p_parent_folder      = "./"  ,
+            p_num_features       = self.num_features ,
+            p_lr_params          = self.lr_params[0] ,
+            p_mlflow_logging     = False ,
         )
 
         train_model.train_model()
@@ -212,28 +231,28 @@ if __name__ == '__main__':
 
     diagnostics = Diagnostics()
 
-    # nv = diagnostics.find_null_values()
-    # stat = diagnostics.capture_statistics()
-    # predict = diagnostics.make_predictions()
-    # result = diagnostics.dependencies_status()
-    # time_ingestion = diagnostics.timing_ingestion(10)
-    train_ingestion = diagnostics.timing_training(1)
+    nv = diagnostics.find_null_values()
+    stat = diagnostics.capture_statistics()
+    predict = diagnostics.make_predictions()
+    result = diagnostics.dependencies_status()
+    time_ingestion = diagnostics.timing_ingestion(10)
+    train_ingestion = diagnostics.timing_training(10)
 
 
 
 
     
-    # print("\n--------------\n null values \n")
-    # print(nv)
-    # print("\n--------------\n statistics \n")
-    # print(stat)
-    # print("\n--------------\n predication \n")
-    # print(predict)
-    # print("\n--------------\n dependencies \n")
-    # print(result )
+    print("\n--------------\n null values \n")
+    print(nv)
+    print("\n--------------\n statistics \n")
+    print(stat)
+    print("\n--------------\n predication \n")
+    print(predict)
+    print("\n--------------\n dependencies \n")
+    print(result )
 
-    # print("\n--------------\n ingestion timing \n")
-    # print(time_ingestion )
+    print("\n--------------\n ingestion timing \n")
+    print(time_ingestion )
 
     print("\n--------------\n training timing \n")
     print(train_ingestion )

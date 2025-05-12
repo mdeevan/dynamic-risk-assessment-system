@@ -92,22 +92,23 @@ class Train_Model():
         self.num_features = p_num_features
 
         print(f"p_num_featues : \n{p_num_features}")
+        print(f"p_lr_params : \n{p_lr_params}")
 
-        self.C  = p_lr_params[0]['C'] 
-        self.class_weight  = p_lr_params[0]['class_weight'] 
-        self.dual  = p_lr_params[0]['dual'] 
-        self.fit_intercept  = p_lr_params[0]['fit_intercept'] 
-        self.intercept_scaling = p_lr_params[0]['intercept_scaling']  
-        self.l1_ratio  = p_lr_params[0]['l1_ratio'] 
-        self.max_iter  = p_lr_params[0]['max_iter'] 
-        # self.multi_class = p_lr_params[0]['multi_class']  
-        self.n_jobs   = p_lr_params[0]['n_jobs']  
-        self.penalty  = p_lr_params[0]['penalty'] 
-        self.random_state   = p_lr_params[0]['random_state']  
-        self.solver   = p_lr_params[0]['solver']  
-        self.tol   = p_lr_params[0]['tol']  
-        self.verbose  = p_lr_params[0]['verbose'] 
-        self.warm_start  = p_lr_params[0]['warm_start'] 
+        self.C  = p_lr_params['C'] 
+        # self.class_weight  = p_lr_params['class_weight'] 
+        self.dual  = p_lr_params['dual'] 
+        self.fit_intercept  = p_lr_params['fit_intercept'] 
+        self.intercept_scaling = p_lr_params['intercept_scaling']  
+        self.l1_ratio  = p_lr_params['l1_ratio'] 
+        self.max_iter  = p_lr_params['max_iter'] 
+        # self.multi_class = p_lr_params['multi_class']  
+        self.n_jobs   = p_lr_params['n_jobs']  
+        self.penalty  = p_lr_params['penalty'] 
+        self.random_state   = p_lr_params['random_state']  
+        self.solver   = p_lr_params['solver']  
+        self.tol   = p_lr_params['tol']  
+        self.verbose  = p_lr_params['verbose'] 
+        self.warm_start  = p_lr_params['warm_start'] 
 
 
         # with open("params.yml") as stream:
@@ -150,7 +151,7 @@ class Train_Model():
         logging.debug(f"filename : {filename}")
         try:
             lr = LogisticRegression(C = self.C ,
-                                    class_weight =  self.class_weight , 
+                                    # class_weight =  self.class_weight , 
                                     dual =  self.dual , 
                                     fit_intercept = self.fit_intercept ,
                                     intercept_scaling = self.intercept_scaling , 

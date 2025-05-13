@@ -18,8 +18,13 @@ import joblib
 import uvicorn
 # import dvc.api
 
-# from src.diagnostics.diagnostics import Diagnostics
 
+# uvicorn app:app --app-dir src
+
+
+
+# from src.diagnostics.diagnostics import Diagnostics
+# sys.path.append("../")
 from diagnostics import Diagnostics
 
 
@@ -27,7 +32,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 logger = logging.getLogger()
 
 
-def fastAPI_startup():
+def get_diagnostic_object():
     print("fastAPI startup\n")
     try:
         with open("./config/config.yaml") as stream:
@@ -37,79 +42,25 @@ def fastAPI_startup():
         logging.error(f"Error initialization %s", err)
 
 
-    # parser = argparse.ArgumentParser(description="diagnostic")
-
-    # parser.add_argument("--model_path_name", type=str, 
-    #                     default=cfg["prod_deployment"]["prod_deployment_path"])
-
-    # parser.add_argument("--model_file_name", type=str, 
-    #                     default=cfg["prod_deployment"]["output_model_name"])
-
-    # parser.add_argument("--data_folder", type=str, 
-    #                     default=cfg['scoring']['test_data_path'])
-
-    # parser.add_argument("--data_files", type=str, default="[*]")
-    # parser.add_argument("--ingested_file", type=str, default="[*]")
-
-    # parser.add_argument("--report_folder"    , type=str, default="temp")
-    # parser.add_argument("--prediction_output", type=str, default="temp_predict")
-    # # parser.add_argument("--score_filename"   , type=str, default=None)
-    # parser.add_argument("--timing_filename"  , type=str, default="temp_timing")
-    # parser.add_argument("--mlflow_logging"   , type=str, default=False)
-    # parser.add_argument("--temp_folder"      , type=str, default="temp")
-    # parser.add_argument("--num_features"     , type=str, 
-    #                     default=str(cfg['num_features']))
-    
-    # parser.add_argument("--lr_params"        , type=str, default=None)
-    # parser.add_argument("--parent_folder"    , type=str, default="./")
-
-
-    # args = parser.parse_args([]) # Pass an empty list for non-command-line usage
-
-    diagnostic = diagnostics.Diagnostics()
+    # diagnostic = diagnostics.Diagnostics()
+    diagnostic =  Diagnostics()
     return diagnostic
 
 
-    diagnostic_instance = self.__get_diagnosic_instance()
-
-    pass
-
-
-ml_models = {}
+global_vars = {}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Load the ML model
 
     print("inside lifespan ")
-    ml_models["answer_to_everything"] = fastAPI_startup
+
+    global_vars["diagnostic_obj"] = get_diagnostic_object()
     yield
     # Clean up the ML models and release the resources
-    ml_models.clear()
+    global_vars.clear()
 
 
 app = FastAPI(lifespan=lifespan)
-
-# @app.on_event("startup")
-# async def startup_event():
-#     """
-#     capture parameters and setup the environment variables
-#     expensive function, to be done only at startup
-#     """
-#     global model, encoder, lb, cat_features
-
-#     params = dvc.api.params_show()
-#     model_path = params["model"]["model_path"]
-#     model_name = params["model"]["model_name"]
-#     encoder_name = params["model"]["encoder_name"]
-#     lb_name = params["model"]["lb_name"]
-#     cat_features = params["cat_features"]
-
-#     # census_obj = cls.Census()
-#     model = joblib.load(os.path.join(model_path, model_name))
-#     encoder = joblib.load(os.path.join(model_path, encoder_name))
-#     lb = joblib.load(os.path.join(model_path, lb_name))
-
 
 # Home site with welcome message - GET request
 @app.get("/", tags=["home"])
@@ -121,17 +72,31 @@ async def get_root() -> dict:
         "message": "Welcome to FastAPI interface to dynamic risk assessment system"
     }
 
-@app.get("/scoring")
-async def scoring():
-    stat = diagnostics.capture_statistics()
+@app.get("/statistics")
+async def statistics():
+    stat = global_vars['diagnostic_obj'].capture_statistics()
 
     return stat
 
-@app.get("/summarystats")
-async def summary_stats():
-    pass
+@app.get("/null_values")
+async def null_values():
+    nv = global_vars['diagnostic_obj'].find_null_values()
 
-@app.get("/diagnostics")
-async def diagnostics():
-    pass
+    return nv
+
+@app.get("/time_ingestion")
+async def time_ingestion(p_iterations: int = 10):
+    time_ingestion = global_vars['diagnostic_obj'].timing_ingestion(p_iterations)
+
+    return time_ingestion
+
+@app.get("/time_training")
+async def time_training(p_iterations: int = 10):
+    time_ingestion = global_vars['diagnostic_obj'].timing_ingestion(1)
+
+    # calling ingestion to use generated ingesteddata in temp folder
+    # which is subsequently used by training
+    time_training  = global_vars['diagnostic_obj'].timing_training(p_iterations)
+
+    return time_training
 

@@ -76,12 +76,6 @@ class Diagnostics():
     def find_null_values(self, p_data_path: str = "") -> str:
         # ---------------------------------
         
-        # data_file = p_data_path if (p_data_path != "" ) else ( 
-        #             utilities.get_filename(p_filename=self.test_data_name, 
-        #                                    p_parent_folder=self.parent_folder,
-        #                                    p_path=self.test_data_path)
-        # )
-
         if (p_data_path == ""):
             df = self.df
         else:

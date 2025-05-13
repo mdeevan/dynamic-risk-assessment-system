@@ -1,20 +1,31 @@
 import requests
 
-#Specify a URL that resolves to your workspace
-URL = "http://127.0.0.1/"
+# the api app (fastapi) is in src folder. so use the following to run server
+# uvicorn app:app --app-dir src
+
+# once running following will be the URL
+URL = "http://127.0.0.1:8000"
 
 
 
-#Call each API endpoint and store the responses
-response1 = #put an API call here
-response2 = #put an API call here
-response3 = #put an API call here
-response4 = #put an API call here
+apis = ["prediction",
+        "model_score",
+        "statistics",
+        "diagnostics"]
 
-#combine all API responses
-responses = #combine reponses here
+responses = []
+for api in apis:
+    print("URL : ", URL + f"/{api}")
+    responses.append(requests.get(URL + f"/{api}"))
 
 #write the responses to your workspace
 
 
+with open('apireturns.txt', "w") as f:
+    f.write("API Responses\n")
+    for idx, response in enumerate(responses):
+        f.write("\n ------------------------------------- \n")
+        f.write(f"result from {apis[idx]} : status : {response}\n")
 
+        f.write(str(response.json()))
+        f.write("\n")

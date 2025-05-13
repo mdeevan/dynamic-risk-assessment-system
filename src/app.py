@@ -34,16 +34,17 @@ logger = logging.getLogger()
 
 def get_diagnostic_object():
     print("fastAPI startup\n")
-    try:
-        with open("./config/config.yaml") as stream:
-            cfg = yaml.safe_load(stream)
+    # try:
+    #     with open("./config/config.yaml") as stream:
+    #         cfg = yaml.safe_load(stream)
 
-    except Exception as err:
-        logging.error(f"Error initialization %s", err)
+    # except Exception as err:
+    #     logging.error(f"Error initialization %s", err)
 
 
     # diagnostic = diagnostics.Diagnostics()
     diagnostic =  Diagnostics()
+
     return diagnostic
 
 
@@ -72,6 +73,25 @@ async def get_root() -> dict:
         "message": "Welcome to FastAPI interface to dynamic risk assessment system"
     }
 
+
+
+@app.get("/diagnostics")
+async def get_diagnostics():
+    stat = global_vars['diagnostic_obj'].capture_statistics()
+    nv = global_vars['diagnostic_obj'].find_null_values()
+    time_ingestion = global_vars['diagnostic_obj'].timing_ingestion()
+    time_training  = global_vars['diagnostic_obj'].timing_training()
+    dependencies = global_vars['diagnostic_obj'].dependencies_status()
+
+    results = {}
+    results['null_values']    = nv
+    results['time_ingestion'] = time_ingestion
+    results['time_training']  = time_training
+    results['dependencies']   = dependencies
+
+    return results
+
+
 @app.get("/statistics")
 async def statistics():
     stat = global_vars['diagnostic_obj'].capture_statistics()
@@ -99,4 +119,31 @@ async def time_training(p_iterations: int = 10):
     time_training  = global_vars['diagnostic_obj'].timing_training(p_iterations)
 
     return time_training
+
+
+@app.get("/prediction")
+async def get_predictions():
+    predict = global_vars['diagnostic_obj'].make_predictions()
+
+    return predict
+
+@app.get("/dependencies")
+async def get_dependencies():
+    dependencies = global_vars['diagnostic_obj'].dependencies_status()
+
+    return dependencies
+
+@app.get("/model_score")
+async def get_model_score():
+
+    filename = os.path.join(global_vars['diagnostic_obj'].model_path_name,
+                            "latestscore.txt")
+    
+    with open(filename, "r") as f:
+        score = f.read()
+
+    print(filename)
+    print(score)
+
+    return score
 

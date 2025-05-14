@@ -16,6 +16,7 @@ import json
 import ast
 import sys
 
+sys.path.append("../")
 from lib import utilities
 
 

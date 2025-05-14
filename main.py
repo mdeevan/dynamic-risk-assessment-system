@@ -12,7 +12,7 @@ _steps = [
     "ingestion",
     "training",
     "scoring",
-    "deployment",
+    # "deployment",
     # "diagnostics",
     # "reporting"
 ]

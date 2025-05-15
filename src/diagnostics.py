@@ -39,7 +39,7 @@ class Diagnostics():
 
 
         self.parent_folder   = "./"
-        self.model_name      = self.cfg["prod_deployment"]["output_model_name"]
+        self.model_name      = self.cfg["training"]["output_model_name"]
         self.model_path_name = self.cfg["prod_deployment"]["prod_deployment_path"]
 
         self.data_folder     = self.cfg['diagnostics']['data_folder']
@@ -50,6 +50,18 @@ class Diagnostics():
         self.test_data_name  = "testdata.csv"
         self.num_features    = self.cfg['num_features']
         self.lr_params       = self.cfg['logistic_regression_params']
+
+        outfile_path = self.cfg['training']['output_model_path']
+        outfile_name = self.cfg['diagnostics']['apicallstxt_file']
+        confusion_matrix_file = self.cfg['diagnostics']['confusion_matrix_file']
+
+        self.outfile = utilities.get_filename(outfile_name,
+                                              p_parent_folder="",
+                                              p_path=outfile_path)
+
+        self.confusion_matrix_file = utilities.get_filename(confusion_matrix_file,
+                                                            p_parent_folder="",
+                                                            p_path=outfile_path)
 
 
         try:
@@ -232,8 +244,20 @@ if __name__ == '__main__':
     time_ingestion = diagnostics.timing_ingestion(10)
     train_ingestion = diagnostics.timing_training(10)
 
+    diagnostics_list =['Null Values', 'Statistics', 'Prediction', 
+                       'Dependencies', 'Time to Ingest data', 
+                       'training ingested data']
+    responses =[nv, stat, predict, result, time_ingestion, train_ingestion]
 
+    # with open('apireturns_diagnostics.txt', "w") as f:
+    with open(diagnostics.outfile, "w") as f:
+        f.write("Diagnostics \n")
+        for idx, response in enumerate(responses):
+            f.write("\n ------------------------------------- \n")
+            f.write(f"result from {diagnostics_list[idx]}  \n")
 
+            f.write(str(response))
+            f.write("\n")
 
     
     print("\n--------------\n null values \n")

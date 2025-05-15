@@ -92,6 +92,32 @@ class Fullprocess():
         return score
 
 
+    def process_new_files(self):
+        command = ['mlflow','main',".", "-P", "steps='ingestion,scoring'"]
+        subprocess.run(command, cwd="../")
+
+        new_score = self.get_score('new')
+
+        return new_score
+
+    def process_train_deploy(self):
+        command = ['mlflow','main',".", "-P", "steps='training,scoring,deployment'"]
+        subprocess.run(command, cwd="../")
+
+        return True
+
+    def run_diagnostics_reporting(self):
+        commands = [['python','src/diagnostics.py' ],
+                    ['python','src/reporting.py' ]
+                    ]
+
+
+        for command in commands:
+            subprocess.run(command)
+
+        return True
+
+
 def execute_fullprocess():
     fullprocess = Fullprocess()
 
@@ -109,10 +135,7 @@ def execute_fullprocess():
     new_score = -1.0
     deployed_score = -1.0
     if new_files_exist:
-        command = ['mlflow','main',".", "-P", "steps='ingestion,scoring'"]
-        subprocess.run(command, cwd="../")
-
-        new_score = fullprocess.get_score('new')
+        new_score = fullprocess.process_new_files()
 
         print(f"new score : {new_score}, type : {type(new_score)}")
 
@@ -127,20 +150,20 @@ def execute_fullprocess():
     #if you found model drift, you should proceed. otherwise, do end the process here
 
     model_drift = float(new_score) < float(deployed_score)
-    if (model_drift) :
-        print("model drifted")
+    if (new_files_exist and model_drift) :
+        ##################Re-deployment
+        #if you found evidence for model drift, re-run the deployment.py script
 
+        print("model drifted ")
+        print("   training and deploying model ")
 
+        fullprocess.process_train_deploy()
 
+        ##################Diagnostics and reporting
+        #run diagnostics.py and reporting.py for the re-deployed model
 
-##################Re-deployment
-#if you found evidence for model drift, re-run the deployment.py script
-
-##################Diagnostics and reporting
-#run diagnostics.py and reporting.py for the re-deployed model
-
-
-
+        print("   running diagnostic and reporting ")
+        fullprocess.run_diagnostics_reporting()
 
 
 if __name__ == "__main__":

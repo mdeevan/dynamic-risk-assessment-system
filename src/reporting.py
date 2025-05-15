@@ -47,8 +47,9 @@ class Reporting():
         df_cm.columns.name = 'Predicted'
 
         sns.heatmap(df_cm, cmap="Blues", annot=True, annot_kws={"size": 12})# font size
-        plt.savefig("confusion_matrix.png")
+        plt.savefig(self.diagnostic_instance.confusion_matrix_file)
 
+        
 
 if __name__ == '__main__':
 

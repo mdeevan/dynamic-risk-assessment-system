@@ -107,27 +107,25 @@ class Fullprocess():
 
     def process_new_files(self):
         
-        myenv = os.environ.copy()
 
-        # myenv['HYDRA_FULL_ERROR'] = 1
-
-        command = ['mlflow','run',".", '-e','main', "-P", "steps='ingestion,scoring'"]
+        command = ['sh','src/ingest_score.sh']
         print(f"command : {command}")
-        subprocess.run(command, cwd="../", env=myenv)
+        subprocess.run(command, cwd="../")
 
         new_score = self.get_score('new')
 
         return new_score
 
     def process_train_deploy(self):
-        command = ['mlflow','run',"../", '-e','main',  "-P", "steps='training,scoring,deployment'"]
-        subprocess.run(command, cwd="../")
+        command = ['sh','src/train_deploy.sh']
+
+        subprocess.run(command, cwd="../")  
 
         return True
 
     def run_diagnostics_reporting(self):
-        commands = [['python','src/diagnostics.py' ],
-                    ['python','src/reporting.py' ]
+        commands = [['python','diagnostics.py' ],
+                    ['python','reporting.py' ]
                     ]
 
 
@@ -170,7 +168,7 @@ def execute_fullprocess():
     ##################Deciding whether to proceed, part 2
     #if you found model drift, you should proceed. otherwise, do end the process here
 
-    model_drift = float(new_score) < float(deployed_score)
+    model_drift = float(new_score) > float(deployed_score)
     if (new_files_exist and model_drift) :
         ##################Re-deployment
         #if you found evidence for model drift, re-run the deployment.py script

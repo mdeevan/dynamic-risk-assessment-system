@@ -1,0 +1,1 @@
+mlflow run . -P steps='ingestion,scoring'

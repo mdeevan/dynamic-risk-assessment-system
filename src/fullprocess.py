@@ -11,8 +11,12 @@ import logging
 import pandas as pd
 import os
 import subprocess
+import logging
 
 from lib import utilities
+
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)-15s %(message)s")
+logger = logging.getLogger()
 
 
 class Fullprocess():
@@ -20,15 +24,15 @@ class Fullprocess():
     def __init__(self):
 
         try:
-            with open("./config/config.yaml") as stream:
+            with open("../config/config.yaml") as stream:
                 cfg = yaml.safe_load(stream)
 
         except Exception as err:
             cfg = None
-            logging.error(f"FATAL: Error initialization configuration %s", err)
+            logger.error(f"FATAL: Error initialization configuration %s", err)
 
         # ingested files from the last execution
-        self.parent_folder = ""
+        self.parent_folder = "../"
         self.prod_folder = cfg['prod_deployment']['prod_deployment_path']
         self.ingested_files = cfg['ingestion']['ingested_files_log']
 
@@ -42,8 +46,13 @@ class Fullprocess():
 
 
     def read_ingested_files(self) ->list:
+        print("inside read_ingested_files")
         ingested_file_path = utilities.get_filename(self.ingested_files, 
+                                                    p_parent_folder=self.parent_folder,
                                                     p_path=self.prod_folder)
+        
+        print("ingested file path %s ", ingested_file_path)
+
         df = utilities.read_file(ingested_file_path)
         ingested_files_list = df.file.to_list()
 
@@ -70,7 +79,7 @@ class Fullprocess():
             if file not in ingested_files_list:
                 new_files = True
 
-        print(f"new_files : {new_files}")
+        print(f"new_files : {new_files}: files : {files}")
 
         return new_files 
     
@@ -84,24 +93,34 @@ class Fullprocess():
                                     p_path=score_folder)
 
         score = -1
-        with open(fn, "r") as f:
-            score = f.read()
+        try:
+            with open(fn, "r") as f:
+                score = f.read()
 
-        print(f"{source} score : {score}")
+            print(f"{source} score : {score}")
+
+        except FileNotFoundError as err:
+            score = 999.9
 
         return score
 
 
     def process_new_files(self):
-        command = ['mlflow','main',".", "-P", "steps='ingestion,scoring'"]
-        subprocess.run(command, cwd="../")
+        
+        myenv = os.environ.copy()
+
+        # myenv['HYDRA_FULL_ERROR'] = 1
+
+        command = ['mlflow','run',".", '-e','main', "-P", "steps='ingestion,scoring'"]
+        print(f"command : {command}")
+        subprocess.run(command, cwd="../", env=myenv)
 
         new_score = self.get_score('new')
 
         return new_score
 
     def process_train_deploy(self):
-        command = ['mlflow','main',".", "-P", "steps='training,scoring,deployment'"]
+        command = ['mlflow','run',"../", '-e','main',  "-P", "steps='training,scoring,deployment'"]
         subprocess.run(command, cwd="../")
 
         return True
@@ -123,12 +142,14 @@ def execute_fullprocess():
 
     ##################Check and read new data
     #first, read ingestedfiles.txt
+    print("read ingested files")
     ingested_files_list = fullprocess.read_ingested_files()
 
 
     #second, determine whether the source data folder has files that aren't listed in ingestedfiles.txt
     ##################Deciding whether to proceed, part 1
 
+    print(f"read new files : {ingested_files_list}")
     new_files_exist = fullprocess.read_input_files(ingested_files_list)
 
     #if you found new data, you should proceed. otherwise, do end the process here
@@ -167,5 +188,6 @@ def execute_fullprocess():
 
 
 if __name__ == "__main__":
+    os.chdir("./src")
     execute_fullprocess()
 

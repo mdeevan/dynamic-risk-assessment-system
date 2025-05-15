@@ -42,8 +42,10 @@ class Diagnostics():
         self.model_name      = self.cfg["training"]["output_model_name"]
         self.model_path_name = self.cfg["prod_deployment"]["prod_deployment_path"]
 
-        self.data_folder     = self.cfg['diagnostics']['data_folder']
-        self.data_files      = self.cfg['diagnostics']['data_files']
+        # self.data_folder     = self.cfg['diagnostics']['data_folder']
+        # self.data_files      = self.cfg['diagnostics']['data_files']
+        self.data_folder     = self.cfg['ingestion']['ingestion_path']
+        self.data_files      = self.cfg['ingestion']['ingestion_filename']
         self.ingested_filename= self.cfg['ingestion']['ingested_filename']
 
         self.test_data_path  = self.cfg['scoring']['test_data_path']

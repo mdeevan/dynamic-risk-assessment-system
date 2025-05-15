@@ -132,7 +132,7 @@ class Dyanmic_Risk_Assessment_MLFlow():
 
 
 # This automatically reads in the configuration
-@hydra.main(config_path="config", config_name="config")
+@hydra.main(config_path="config", config_name="config") #, version_base=1.3)
 def go(cfg: DictConfig):
 
     dagshub.init(

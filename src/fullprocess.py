@@ -15,90 +15,121 @@ import subprocess
 from lib import utilities
 
 
-try:
-    with open("./config/config.yaml") as stream:
-        cfg = yaml.safe_load(stream)
+class Fullprocess():
 
-except Exception as err:
-    cfg = None
-    logging.error(f"FATAL: Error initialization configuration %s", err)
+    def __init__(self):
 
+        try:
+            with open("./config/config.yaml") as stream:
+                cfg = yaml.safe_load(stream)
 
-# ingested files from the last execution
-parent_folder = ""
-prod_folder = cfg['prod_deployment']['prod_deployment_path']
-ingested_files = cfg['ingestion']['ingested_files_log']
+        except Exception as err:
+            cfg = None
+            logging.error(f"FATAL: Error initialization configuration %s", err)
 
-# files to ingest as part of new execution
-input_file_path = cfg['ingestion']['ingestion_path']
-input_file_name = cfg['ingestion']['ingestion_filename']
+        # ingested files from the last execution
+        self.parent_folder = ""
+        self.prod_folder = cfg['prod_deployment']['prod_deployment_path']
+        self.ingested_files = cfg['ingestion']['ingested_files_log']
 
-# previous model score file
-score_folder = cfg['training']['output_model_path']
-score_filename = cfg['scoring']['score_filename']
+        # files to ingest as part of new execution
+        self.input_file_path = cfg['ingestion']['ingestion_path']
+        self.input_file_name = cfg['ingestion']['ingestion_filename']
 
-
-def read_ingested_files() ->list:
-    ingested_file_path = utilities.get_filename(ingested_files, p_path=prod_folder)
-    df = utilities.read_file(ingested_file_path)
-    ingested_files_list = df.file.to_list()
-
-    return ingested_files_list
+        # previous model score file
+        self.model_folder = cfg['training']['output_model_path']
+        self.score_filename = cfg['scoring']['score_filename']
 
 
+    def read_ingested_files(self) ->list:
+        ingested_file_path = utilities.get_filename(self.ingested_files, 
+                                                    p_path=self.prod_folder)
+        df = utilities.read_file(ingested_file_path)
+        ingested_files_list = df.file.to_list()
+
+        return ingested_files_list
+
+    def read_input_files(self, ingested_files_list : list) -> bool:
+
+        if ("*" in self.input_file_name):
+            input_folder = os.path.join(self.parent_folder,
+                                        self.input_file_path,
+                                        )
+
+            print(f"input folder : {input_folder}")
+            files = [f for f in os.listdir(input_folder) 
+                        if os.path.isfile(utilities.get_filename(p_filename= f,
+                                                                p_parent_folder=self.parent_folder,
+                                                                p_path=self.input_file_path
+                                                                ))]
+        else:
+            files = self.input_file_name
+
+        new_files = False
+        for file in files:
+            if file not in ingested_files_list:
+                new_files = True
+
+        print(f"new_files : {new_files}")
+
+        return new_files 
+    
+
+    def get_score(self, source:str='deployed') -> float:
+
+        score_folder = self.prod_folder if source=='deployed' else self.model_folder
+
+        fn = utilities.get_filename(self.score_filename, 
+                                    p_parent_folder=self.parent_folder,
+                                    p_path=score_folder)
+
+        score = -1
+        with open(fn, "r") as f:
+            score = f.read()
+
+        print(f"{source} score : {score}")
+
+        return score
 
 
-##################Check and read new data
-#first, read ingestedfiles.txt
-ingested_files_list = read_ingested_files()
+def execute_fullprocess():
+    fullprocess = Fullprocess()
+
+    ##################Check and read new data
+    #first, read ingestedfiles.txt
+    ingested_files_list = fullprocess.read_ingested_files()
 
 
-#second, determine whether the source data folder has files that aren't listed in ingestedfiles.txt
-if ("*" in input_file_name):
-    input_folder = os.path.join(parent_folder,
-                                input_file_path,
-                                )
+    #second, determine whether the source data folder has files that aren't listed in ingestedfiles.txt
+    ##################Deciding whether to proceed, part 1
 
-    print(f"input folder : {input_folder}")
-    files = [f for f in os.listdir(input_folder) 
-                if os.path.isfile(utilities.get_filename(p_filename= f,
-                                                         p_parent_folder=parent_folder,
-                                                         p_path=input_file_path
-                                                        ))]
+    new_files_exist = fullprocess.read_input_files(ingested_files_list)
 
-else:
-    files = input_file_name
+    #if you found new data, you should proceed. otherwise, do end the process here
+    new_score = -1.0
+    deployed_score = -1.0
+    if new_files_exist:
+        command = ['mlflow','main',".", "-P", "steps='ingestion,scoring'"]
+        subprocess.run(command, cwd="../")
 
-new_files = False
-for file in files:
-    if file not in ingested_files_list:
-        new_files = True
+        new_score = fullprocess.get_score('new')
+
+        print(f"new score : {new_score}, type : {type(new_score)}")
 
 
-print(f"new_files : {new_files}")
-##################Deciding whether to proceed, part 1
-#if you found new data, you should proceed. otherwise, do end the process here
-if new_files:
-    command = ['mlflow','main',"."]
-    subprocess.run(command, cwd="../")
+    ##################Checking for model drift
+    #check whether the score from the deployed model is different from the score from the model that uses the newest ingested data
+    deployed_score = fullprocess.get_score('deployed')
 
+    print(f"deployed Score : {deployed_score} , type : {type(deployed_score)}")
 
+    ##################Deciding whether to proceed, part 2
+    #if you found model drift, you should proceed. otherwise, do end the process here
 
-##################Checking for model drift
-#check whether the score from the deployed model is different from the score from the model that uses the newest ingested data
-fn = utilities.get_filename(score_filename, 
-                            p_parent_folder=parent_folder,
-                            p_path=score_folder)
+    model_drift = float(new_score) < float(deployed_score)
+    if (model_drift) :
+        print("model drifted")
 
-original_score = 0
-with open(fn, "r") as f:
-    original_score = f.read()
-
-print(f"original score : {original_score}")
-
-
-##################Deciding whether to proceed, part 2
-#if you found model drift, you should proceed. otherwise, do end the process here
 
 
 
@@ -112,5 +143,6 @@ print(f"original score : {original_score}")
 
 
 
-
+if __name__ == "__main__":
+    execute_fullprocess()
 

@@ -54,7 +54,7 @@ class Dyanmic_Risk_Assessment_MLFlow():
                 "ingested_data_path": cfg["ingestion"]["ingested_data_path"],
                 "ingestion_filename": cfg["ingestion"]["ingested_filename"],
                 "out_path": cfg["training"]["output_model_path"],
-                "out_model": cfg["prod_deployment"]["output_model_name"],
+                "out_model": cfg["training"]["output_model_name"],
                 "num_features": cfg["num_features"],
                 "lr_params": cfg["logistic_regression_params"][0],
                 "mlflow_logging": cfg["main"]["mlflow_logging"]
@@ -71,7 +71,12 @@ class Dyanmic_Risk_Assessment_MLFlow():
                 #  out path and outfile are where the ingested file is stored, 
                 # from previous 'ingestion' step
 
+                "ingested_data_path": cfg["ingestion"]["ingested_data_path"],
+                "ingested_file_name": cfg["ingestion"]["ingested_filename"],
+                "num_features": cfg["num_features"],
                 "model_path_name": cfg["training"]["output_model_path"],
+                "model_file_name": cfg["training"]["output_model_name"],
+                "prod_deployment_path": cfg["prod_deployment"]["prod_deployment_path"],
                 "report_folder": cfg["scoring"]["report_folder"],
                 "prediction_output": cfg["scoring"]["prediction_output"],
                 "score_filename": cfg["scoring"]["score_filename"],
@@ -87,7 +92,7 @@ class Dyanmic_Risk_Assessment_MLFlow():
             experiment_name=f"{self.experiment_name}_deployment",
             parameters={
                 "model_path_name"     : cfg["training"]["output_model_path"],
-                "output_model_name"   : cfg["prod_deployment"]["output_model_name"],
+                "output_model_name"   : cfg["training"]["output_model_name"],
                 "score_filename"      : cfg["scoring"]["score_filename"],
                 "ingested_data_path"  : cfg["ingestion"]["ingested_data_path"],
                 "ingested_filename"   : cfg["ingestion"]["ingested_filename"],
@@ -105,7 +110,7 @@ class Dyanmic_Risk_Assessment_MLFlow():
             experiment_name=f"{self.experiment_name}_diagnostics",
             parameters={
                 "model_path_name"  : cfg["prod_deployment"]["prod_deployment_path"],
-                "model_file_name"  : cfg["prod_deployment"]["output_model_name"],
+                "model_file_name"  : cfg["training"]["output_model_name"],
                 "data_folder"      : cfg["diagnostics"]["data_folder"],
                 "data_files"       : cfg["diagnostics"]["data_files"],
                 "ingested_file"    : cfg["ingestion"]["ingested_filename"],

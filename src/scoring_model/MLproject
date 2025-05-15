@@ -5,8 +5,28 @@ entry_points:
   main:
     parameters:
 
+      ingested_data_path:
+        description: Folder containing the ingested data 
+        type: string
+
+      ingested_file_name:
+        description: Name of the ingested file
+        type: string
+
+      num_features:
+        description: list of numeric features to consider for model training
+        type: array
+
       model_path_name:
-        description: Folder containing the model, score will be store in same folder
+        description: Model path name
+        type: string
+
+      model_file_name:
+        description: Model name
+        type: string
+
+      prod_deployment_path:
+        description: Folder to host the deployed model
         type: string
 
       report_folder:
@@ -26,7 +46,12 @@ entry_points:
         type: string
 
     command: >-
-        python scoring.py --model_path_name {model_path_name} \
+        python scoring.py --ingested_data_path {ingested_data_path} \
+                          --ingested_file_name {ingested_file_name} \
+                          --num_features {num_features} \
+                          --model_path_name {model_path_name} \
+                          --model_file_name {model_file_name} \
+                          --prod_deployment_path {prod_deployment_path} \
                           --report_folder {report_folder} \
                           --prediction_output {prediction_output} \
                           --score_filename {score_filename} \

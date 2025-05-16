@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
 
 
-class Diagnostics():
+class Diagnostics:
     """
     Diagnostic class, encapsulating the diagnostic functions
 
@@ -70,7 +70,7 @@ class Diagnostics():
                 p_parent_folder=self.parent_folder,
                 p_model_path_name=self.model_path_name,
             )
-        except (FileNotFoundError) as err:
+        except FileNotFoundError as err:
             self.model = None
             logger.error("Error loading Model %s", err)
 

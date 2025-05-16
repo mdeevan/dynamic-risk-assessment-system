@@ -20,10 +20,24 @@ test:
 	python -m pytest census_class_test.py main_test.py -vv --cov
 
 format:
-	black  --line-length 88 *.py
+	black  \
+		src/*.py \
+		*.py \
+		src/data_ingestion/*.py \
+		src/scoring_model/*.py \
+		src/training/*.py \
+		src/deployment/*.py \
+		--line-length 88 
 
 lint:
-	pylint src/*.py *.py src/training/*.py --disable=W0212,R0914,R0903,R0913,R0902,R0917  
+	pylint \
+		src/*.py \
+		*.py \
+		src/data_ingestion/*.py \
+		src/scoring_model/*.py \
+		src/training/*.py \
+		src/deployment/*.py \
+		--disable=W0212,R0914,R0903,R0913,R0902,R0917  
 
 
 	

@@ -18,10 +18,10 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
 
 
-class Train_Model():
-    '''
+class Train_Model:
+    """
     class describing the training model
-    '''
+    """
 
     def __init__(
         self,
@@ -122,8 +122,7 @@ class Train_Model():
 
         try:
             logging.debug(
-                "num_features = %s \n %s",
-                type(self.num_features), self.num_features
+                "num_features = %s \n %s", type(self.num_features), self.num_features
             )
             X = df[self.num_features]
             y = X.pop("exited")
@@ -177,9 +176,9 @@ class Train_Model():
 
 
 def go(args):
-    '''
-        main routine to invoke the training 
-    '''
+    """
+    main routine to invoke the training
+    """
 
     logging.debug("\nInside traingin .go")
     logging.debug("num_features : %s", args.num_features)

@@ -1,5 +1,20 @@
-# dynamic-risk-assessment-system
-Dynamic Risk Assessment System
+# Dynamic Risk Assessment System
+Create, deploy, and monitor a risk assessment ML model that will estimate the attrition risk for the company. Model is regularly monitored to ensure  it remains accurate and up-to-date by setting up processes and scripts to re-train, re-deploy, monitor, and report on  ML model with availability of new data. This ensures that company can get risk assessments that are as accurate as possible and minimize client attrition.  
+
+Project made use of the following  
+|   | Description |  
+| ---- | ----- |  
+|MLFlow | to capture the experiments |
+| Dagshub | to capture and store the experiments |  
+|FastAPI | to expose the functionality via API
+|Sklearn | for Machine learning |
+|Pandas | for data manipulation |
+|Hydra| to allow selective override of the parameters |
+|   |   |
+  
+    
+
+
 
 
 # Creating environment

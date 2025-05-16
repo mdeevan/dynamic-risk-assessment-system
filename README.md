@@ -1,3 +1,5 @@
+[![Python Package using Conda](https://github.com/mdeevan/dynamic-risk-assessment-system/actions/workflows/python-package-conda.yml/badge.svg)](https://github.com/mdeevan/dynamic-risk-assessment-system/actions/workflows/python-package-conda.yml)
+
 # Dynamic Risk Assessment System
 Create, deploy, and monitor a risk assessment ML model that will estimate the attrition risk for the company. Model is regularly monitored to ensure  it remains accurate and up-to-date by setting up processes and scripts to re-train, re-deploy, monitor, and report on  ML model with availability of new data. This ensures that company can get risk assessments that are as accurate as possible and minimize client attrition.  
 

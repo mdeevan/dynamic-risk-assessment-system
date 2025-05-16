@@ -23,7 +23,7 @@ format:
 	black  --line-length 88 *.py
 
 lint:
-	pylint *.py --disable=W0212,R0914,R0903  
+	pylint src/*.py --disable=W0212,R0914,R0903  
 # --ignore-patterns=sanitycheck.py setup.py
 
 	

@@ -1,41 +1,40 @@
-import pickle
-from sklearn.model_selection import train_test_split
-import pandas as pd
-import numpy as np
-from sklearn import metrics
-from sklearn.metrics import confusion_matrix
-import matplotlib.pyplot as plt
-import seaborn as sns
-import json
-import os
-import inspect
-import sys
-import yaml
+"""
+diagnostic.py
+contains the diagnostic functions
+"""
+
 import logging
-import argparse
 import subprocess
 import timeit
-
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
-logger = logging.getLogger()
-
+import pandas as pd
+import yaml
 from lib import utilities
 from data_ingestion.ingestion import Ingest_Data
 from training.training import Train_Model
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
+logger = logging.getLogger()
+
 
 class Diagnostics:
+    """
+    Diagnostic class, encapsulating the diagnostic functions
+
+    """
 
     def __init__(self):
-
+        """
+        initialize the object
+        read the config.yaml and initialize the object variables
+        load the model and data file
+        """
         try:
-            with open("./config/config.yaml") as stream:
+            with open("./config/config.yaml", encoding="utf-8") as stream:
                 self.cfg = yaml.safe_load(stream)
 
         except Exception as err:
             self.cfg = None
-            logging.error(f"FATAL: Error initialization configuration %s", err)
+            logging.error("FATAL: Error initialization configuration %s", err)
 
         self.parent_folder = "./"
         self.model_name = self.cfg["training"]["output_model_name"]
@@ -72,7 +71,7 @@ class Diagnostics:
             )
         except Exception as err:
             self.model = None
-            logging.error(f"Error loading Model %s", err)
+            logging.error("Error loading Model %s", err)
 
         try:
             filename = utilities.get_filename(
@@ -85,10 +84,14 @@ class Diagnostics:
 
         except Exception as err:
             self.df = None
-            logging.error(f"Error loading test df : %s", err)
+            logging.error("Error loading test df : %s", err)
 
     def find_null_values(self, p_data_path: str = "") -> str:
-        # ---------------------------------
+        """
+        find the null value in the data
+        RETURNS:
+            dataframe
+        """
 
         if p_data_path == "":
             df = self.df
@@ -101,15 +104,11 @@ class Diagnostics:
         return rtn
 
     def capture_statistics(self, p_data_path: str = "") -> str:
-        # ---------------------------------
-
-        # data_file = p_data_path if (p_data_path != "" ) else (
-        #             utilities.get_filename(p_filename=self.test_data_name,
-        #                                    p_parent_folder=self.parent_folder,
-        #                                    p_path=self.test_data_path)
-        # )
-
-        # df = utilities.read_file(data_file)
+        """
+        capture statistics
+        RETURNS:
+            json containing mean, median, standard deviation
+        """
 
         if p_data_path == "":
             df = self.df
@@ -121,21 +120,17 @@ class Diagnostics:
         ).to_json()
 
         rtn = agg_values
-        # to_csv(outfile, index=False)
 
         return rtn
 
     def make_predictions(self, p_data_path: str = "") -> str:
-        # ---------------------------------
+        """
+        make prediction on the test data
+        RETURNS:
+            target vs predictions
+        """
 
-        print("inside make predictions")
-        # data_file = p_data_path if (p_data_path != "" ) else (
-        #             utilities.get_filename(p_filename=self.test_data_name,
-        #                                    p_parent_folder=self.parent_folder,
-        #                                    p_path=self.test_data_path)
-        # )
-
-        # df = utilities.read_file(data_file)
+        logger.debug("inside make predictions")
 
         if p_data_path == "":
             df = self.df
@@ -156,13 +151,19 @@ class Diagnostics:
                 ).to_json()
 
         except Exception as err:
-            logging.error(f"%s: diagnostic error making prediction %s", func_name, err)
+            logging.error("diagnostic error making prediction %s", err)
             raise
 
         return rtn
 
     def dependencies_status(self):
-        print("inside pip_outdated")
+        """
+        check the outdated dependencies, to help decide which ones should be updated
+        a version conflict can break the program
+        the report helps make an informed decision
+
+        """
+        logger.debug("inside pip_outdated")
 
         command = ["pip", "list", "--outdated", "--format", "json"]
 
@@ -177,15 +178,11 @@ class Diagnostics:
 
         return result.stdout
 
-        # ingestion_path ,
-        # ingestion_filename ,
-        # out_path ,
-        # out_file ,
-        # ingested_files_log ,
-        # mlflow_logging ,
-        # parent_folder
-
     def __timing_ingestion_command(self):
+        """
+        a private method to setup the timing ingestion command
+        this is then used inwith the timeit in calculating ingestion
+        """
 
         ingest_data = Ingest_Data(
             p_ingestion_path=self.data_folder,
@@ -200,18 +197,27 @@ class Diagnostics:
         ingest_data.process_files()
 
     def timing_ingestion(self, p_iterations=10):
+        """
+        calculate the ingestion timing by using timeit object
+        """
 
         logging.info("inside time_ingestion")
 
         t = timeit.Timer(self.__timing_ingestion_command)
         execution_time = t.timeit(p_iterations)
         logging.debug(
-            f"INGESTION execution time with {p_iterations} iterations : {execution_time}"
+            "INGESTION execution time with %s iterations : %s",
+            p_iterations,
+            execution_time,
         )
 
         return execution_time
 
     def __timing_training_command(self):
+        """
+        a private method to setup the timing training command
+        this is then used inwith the timeit in calculating training
+        """
         train_model = Train_Model(
             p_ingested_data_path="temp",  # from ingested timing method
             p_ingestion_filename=self.ingested_filename,
@@ -226,20 +232,24 @@ class Diagnostics:
         train_model.train_model()
 
     def timing_training(self, p_iterations=10):
+        """
+        calculate the time it takes to train the model by using timeit object
+        """
 
         logging.info("inside timing_training")
 
         t = timeit.Timer(self.__timing_training_command)
         execution_time = t.timeit(p_iterations)
         logging.debug(
-            f"TRAINING execution time with {p_iterations} iterations : {execution_time}"
+            "TRAINING execution time with %s iterations : %s",
+            p_iterations,
+            execution_time,
         )
 
         return execution_time
 
 
 if __name__ == "__main__":
-
     diagnostics = Diagnostics()
 
     nv = diagnostics.find_null_values()
@@ -260,7 +270,7 @@ if __name__ == "__main__":
     responses = [nv, stat, predict, result, time_ingestion, train_ingestion]
 
     # with open('apireturns_diagnostics.txt', "w") as f:
-    with open(diagnostics.outfile, "w") as f:
+    with open(diagnostics.outfile, "w", encoding="utf-8") as f:
         f.write("Diagnostics \n")
         for idx, response in enumerate(responses):
             f.write("\n ------------------------------------- \n")
@@ -269,17 +279,17 @@ if __name__ == "__main__":
             f.write(str(response))
             f.write("\n")
 
-    print("\n--------------\n null values \n")
-    print(nv)
-    print("\n--------------\n statistics \n")
-    print(stat)
-    print("\n--------------\n predication \n")
-    print(predict)
-    print("\n--------------\n dependencies \n")
-    print(result)
+    logger.debug("\n--------------\n null values \n")
+    logger.debug(nv)
+    logger.debug("\n--------------\n statistics \n")
+    logger.debug(stat)
+    logger.debug("\n--------------\n predication \n")
+    logger.debug(predict)
+    logger.debug("\n--------------\n dependencies \n")
+    logger.debug(result)
 
-    print("\n--------------\n ingestion timing \n")
-    print(time_ingestion)
+    logger.debug("\n--------------\n ingestion timing \n")
+    logger.debug(time_ingestion)
 
-    print("\n--------------\n training timing \n")
-    print(train_ingestion)
+    logger.debug("\n--------------\n training timing \n")
+    logger.debug(train_ingestion)

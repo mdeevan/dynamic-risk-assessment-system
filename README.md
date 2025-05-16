@@ -13,6 +13,10 @@ Project made use of the following
 |   |   |
   
     
+# Makefile  
+use make for formatting, lint, create/update environment  
+`make lint`  
+`make format`  
 
 
 
@@ -48,8 +52,8 @@ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
     bash ~/Miniconda3-latest-Linux-x86_64.sh
 ````
-- once the installaton is successful. create enviornment. it uses environment.yml file
-make create-conda-env
+- once the installaton is successful. create enviornment. it uses environment.yml file  
+`make create-conda-env`
 
 once the installaton is successful. create enviornment. it uses environment.yml file
 make update-env

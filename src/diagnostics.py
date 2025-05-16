@@ -32,9 +32,10 @@ class Diagnostics():
             with open("./config/config.yaml", encoding="utf-8") as stream:
                 self.cfg = yaml.safe_load(stream)
 
-        except Exception as err:
+        except (FileNotFoundError, PermissionError) as err:
             self.cfg = None
-            logging.error("FATAL: Error initialization configuration %s", err)
+            logger.error("FATAL: Error initialization configuration %s", err)
+            raise
 
         self.parent_folder = "./"
         self.model_name = self.cfg["training"]["output_model_name"]
@@ -69,9 +70,9 @@ class Diagnostics():
                 p_parent_folder=self.parent_folder,
                 p_model_path_name=self.model_path_name,
             )
-        except Exception as err:
+        except (FileNotFoundError) as err:
             self.model = None
-            logging.error("Error loading Model %s", err)
+            logger.error("Error loading Model %s", err)
 
         try:
             filename = utilities.get_filename(
@@ -82,9 +83,9 @@ class Diagnostics():
 
             self.df = utilities.read_file(filename)
 
-        except Exception as err:
+        except FileNotFoundError as err:
             self.df = None
-            logging.error("Error loading test df : %s", err)
+            logger.error("Error loading test df : %s", err)
 
     def find_null_values(self, p_data_path: str = "") -> str:
         """
@@ -151,7 +152,7 @@ class Diagnostics():
                 ).to_json()
 
         except Exception as err:
-            logging.error("diagnostic error making prediction %s", err)
+            logger.error("diagnostic error making prediction %s", err)
             raise
 
         return rtn
@@ -201,11 +202,11 @@ class Diagnostics():
         calculate the ingestion timing by using timeit object
         """
 
-        logging.info("inside time_ingestion")
+        logger.info("inside time_ingestion")
 
         t = timeit.Timer(self.__timing_ingestion_command)
         execution_time = t.timeit(p_iterations)
-        logging.debug(
+        logger.debug(
             "INGESTION execution time with %s iterations : %s",
             p_iterations,
             execution_time,
@@ -236,11 +237,11 @@ class Diagnostics():
         calculate the time it takes to train the model by using timeit object
         """
 
-        logging.info("inside timing_training")
+        logger.info("inside timing_training")
 
         t = timeit.Timer(self.__timing_training_command)
         execution_time = t.timeit(p_iterations)
-        logging.debug(
+        logger.debug(
             "TRAINING execution time with %s iterations : %s",
             p_iterations,
             execution_time,

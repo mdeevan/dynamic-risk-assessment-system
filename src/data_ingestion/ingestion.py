@@ -4,13 +4,14 @@ ingest data from input folder, combine and save to an output folder
 """
 import os
 import sys
-import pandas as pd
-import argparse
 import logging
+import argparse
+from datetime import datetime
+
+import pandas as pd
 
 # import dagshub
 import mlflow
-from datetime import datetime
 
 sys.path.append("../")
 from lib import utilities
@@ -68,12 +69,13 @@ class Ingest_Data:
         try:
             if "*" in self.ingestion_filename:
                 logging.debug(
-                    f"\nrun-data-ingestion: self.infile {self.ingestion_filename}"
+                    "\nrun-data-ingestion: self.infile %s", self.ingestion_filename
                 )
 
                 source_folder = os.path.join(self.parent_folder, self.ingestion_path)
 
-                # files = [f for f in os.listdir(source_folder) if os.path.isfile(self.__get_filename(f))]
+                # files = [f for f in os.listdir(source_folder)
+                # if os.path.isfile(self.__get_filename(f))]
                 files = [
                     f
                     for f in os.listdir(source_folder)
@@ -86,7 +88,7 @@ class Ingest_Data:
                     )
                 ]
 
-                logging.debug(f"filename : {files}")
+                logging.debug("filename : %s", files)
 
                 for file in files:
                     # filename = self.__get_filename(file)
@@ -96,15 +98,15 @@ class Ingest_Data:
                         p_path=self.ingestion_path,
                     )
 
-                    logging.debug(f"run-data-ingestion: filename : {filename}")
+                    logger.debug("run-data-ingestion: filename : %s", filename)
                     # df_new = self.__read_file(filename)
                     df_new = utilities.read_file(filename)
                     df = pd.concat([df, df_new], axis=0)
             else:
                 files.append(self.ingestion_filename)
 
-                logging.debug(
-                    f"run-data-ingestion: filename : {self.ingestion_filename}"
+                logger.debug(
+                    "run-data-ingestion: filename : %s", self.ingestion_filename
                 )
                 # filename = self.__get_filename(self.ingestion_filename)
                 filename = utilities.get_filename(
@@ -117,7 +119,7 @@ class Ingest_Data:
                 df = utilities.read_file(filename)
 
         except Exception as err:
-            print("error reading file %s", err)
+            logger.error("error reading file %s", err)
             raise
 
         try:
@@ -135,23 +137,23 @@ class Ingest_Data:
             p_path=self.out_path,
         )
 
-        logging.debug(f"run-data-ingestion: out filename {out}")
+        logger.debug("run-data-ingestion: out filename %s", out)
         try:
             df = df.drop_duplicates().reset_index()
             df.to_csv(out, index=False)
 
         except Exception as err:
-            print("error %s in creating outfile %s", err, out)
+            logger.error("error %s in creating outfile %s", err, out)
             raise
 
-        logging.debug("Saving ingested metadata")
+        logger.debug("Saving ingested metadata")
         # outlog_file = self.__get_filename(self.ingested_files_log, self.out_path)
         outlog_file = utilities.get_filename(
             p_filename=self.ingested_files_log,
             p_parent_folder=self.parent_folder,
             p_path=self.out_path,
         )
-        with open(outlog_file, "w") as f:
+        with open(outlog_file, "w", encoding="utf-8") as f:
             f.write("date, folder, file\n")
             exec_date = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
             # f.write(f"Ingestion date: {datetime.now().strftime('%m/%d/%Y %H:%M:%S')}\n")
@@ -171,6 +173,9 @@ class Ingest_Data:
 
 
 def go(args):
+    """
+    main routine to execute
+    """
 
     p_ingestion_path = args.ingestion_path
     p_ingestion_filename = args.ingestion_filename
@@ -196,8 +201,8 @@ def go(args):
     # mlflow.set_experiment("data-ingestion")
     if args.mlflow_logging:
         with mlflow.start_run():
-            logging.debug("inside mlflow_start_run")
-            logging.debug(f"inside go and in scope of mlflow.start_run")
+            logger.debug("inside mlflow_start_run")
+            logger.debug("inside go and in scope of mlflow.start_run")
 
             try:
 
@@ -214,13 +219,13 @@ def go(args):
             path = ingest_data.process_files()
 
         except Exception as err:
-            logger.error(f"Ingestion - w/o logging Error %s", err)
+            logger.error("Ingestion - w/o logging Error %s", err)
             return False
 
 
 if __name__ == "__main__":
 
-    logging.info("inside run_data_ingestion.py")
+    logger.info("inside run_data_ingestion.py")
 
     parser = argparse.ArgumentParser(description="ingest data from the input folder")
 

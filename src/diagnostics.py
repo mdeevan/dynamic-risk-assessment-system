@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
 
 
-class Diagnostics:
+class Diagnostics():
     """
     Diagnostic class, encapsulating the diagnostic functions
 

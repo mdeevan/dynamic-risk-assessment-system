@@ -1,12 +1,18 @@
-import os
-import json
+"""
+main.py
 
+the main flow that runs the pipeline and capture  experiment in MLFlow
+
+"""
+
+import os
+import logging
+from datetime import datetime
+import tempfile
 import mlflow
 import dagshub
-import tempfile
 import hydra
 from omegaconf import DictConfig
-from datetime import datetime
 
 _steps = [
     "ingestion",
@@ -17,12 +23,34 @@ _steps = [
     # "reporting"
 ]
 
-class Dyanmic_Risk_Assessment_MLFlow():
+logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
+logger = logging.getLogger()
+
+
+class Dyanmic_Risk_Assessment_MLFlow:
+    """
+    class to encapsulate the functionality
+    """
 
     def __init__(self, experiment_name: str = None):
+        """
+        initialie the class with the experiment name
+        experiment name help group multiple flows together for ease of reference
+        """
         self.experiment_name = experiment_name
 
     def run_ingestion(self, filename, cfg):
+        """
+        ingest the input data
+        capture the execution as experiment in MLFlow (dagshub)
+
+        INPUT:
+            str (path) filename : MLProject file to execute as part of the pipeline flow
+            cfg : configuration file
+        RETURN:
+            mlflow.run result
+        """
+
         return mlflow.run(
             uri=filename,
             entry_point="main",
@@ -31,46 +59,65 @@ class Dyanmic_Risk_Assessment_MLFlow():
             # env_manager="virtualenv",
             env_manager="conda",
             parameters={
-                "ingestion_path"    : cfg["ingestion"]["ingestion_path"],  
+                "ingestion_path": cfg["ingestion"]["ingestion_path"],
                 "ingestion_filename": cfg["ingestion"]["ingestion_filename"],
-                "out_path"          : cfg["ingestion"]["ingested_data_path"],
-                "out_file"          : cfg["ingestion"]["ingested_filename"],
+                "out_path": cfg["ingestion"]["ingested_data_path"],
+                "out_file": cfg["ingestion"]["ingested_filename"],
                 "ingested_files_log": cfg["ingestion"]["ingested_files_log"],
-                "mlflow_logging"    : cfg["main"]["mlflow_logging"]
+                "mlflow_logging": cfg["main"]["mlflow_logging"],
                 # "modeling": cfg["modeling"]
             },
         )
 
     def run_training(self, filename, cfg):
+        """
+        training the model with the ingested data
+        capture the execution as experiment in MLFlow (dagshub)
+
+        INPUT:
+            str (path) filename : MLProject file to execute as part of the pipeline flow
+            cfg : configuration file
+        RETURN:
+            mlflow.run result
+        """
+
         return mlflow.run(
             uri=filename,
             entry_point="main",
             experiment_name=f"{self.experiment_name}_training",
             env_manager="conda",
             parameters={
-                #  out path and outfile are where the ingested file is stored, 
+                #  out path and outfile are where the ingested file is stored,
                 # from previous 'ingestion' step
-
                 "ingested_data_path": cfg["ingestion"]["ingested_data_path"],
                 "ingestion_filename": cfg["ingestion"]["ingested_filename"],
                 "out_path": cfg["training"]["output_model_path"],
                 "out_model": cfg["training"]["output_model_name"],
                 "num_features": cfg["num_features"],
                 "lr_params": cfg["logistic_regression_params"][0],
-                "mlflow_logging": cfg["main"]["mlflow_logging"]
+                "mlflow_logging": cfg["main"]["mlflow_logging"],
             },
         )
 
     def run_scoring_model(self, filename, cfg):
+        """
+        Score the model peformance (F1 score)
+        capture the execution as experiment in MLFlow (dagshub)
+
+        INPUT:
+            str (path) filename : MLProject file to execute as part of the pipeline flow
+            cfg : configuration file
+        RETURN:
+            mlflow.run result
+        """
         return mlflow.run(
             uri=filename,
             entry_point="main",
             env_manager="conda",
             experiment_name=f"{self.experiment_name}_scoring",
             parameters={
-                #  out path and outfile are where the ingested file is stored, 
+                #  out path and outfile are where the ingested file is stored,
                 # from previous 'ingestion' step
-
                 "ingested_data_path": cfg["ingestion"]["ingested_data_path"],
                 "ingested_file_name": cfg["ingestion"]["ingested_filename"],
                 "num_features": cfg["num_features"],
@@ -80,48 +127,68 @@ class Dyanmic_Risk_Assessment_MLFlow():
                 "report_folder": cfg["scoring"]["report_folder"],
                 "prediction_output": cfg["scoring"]["prediction_output"],
                 "score_filename": cfg["scoring"]["score_filename"],
-                "mlflow_logging": cfg["main"]["mlflow_logging"]
+                "mlflow_logging": cfg["main"]["mlflow_logging"],
             },
         )
 
     def run_production_deployment(self, filename, cfg):
+        """
+        Deploy the model
+        capture the execution as experiment in MLFlow (dagshub)
+
+        INPUT:
+            str (path) filename : MLProject file to execute as part of the pipeline flow
+            cfg : configuration file
+        RETURN:
+            mlflow.run result
+        """
         return mlflow.run(
             uri=filename,
             entry_point="main",
             env_manager="conda",
             experiment_name=f"{self.experiment_name}_deployment",
             parameters={
-                "model_path_name"     : cfg["training"]["output_model_path"],
-                "output_model_name"   : cfg["training"]["output_model_name"],
-                "score_filename"      : cfg["scoring"]["score_filename"],
-                "ingested_data_path"  : cfg["ingestion"]["ingested_data_path"],
-                "ingested_filename"   : cfg["ingestion"]["ingested_filename"],
-                "ingested_files_log"  : cfg["ingestion"]["ingested_files_log"],
+                "model_path_name": cfg["training"]["output_model_path"],
+                "output_model_name": cfg["training"]["output_model_name"],
+                "score_filename": cfg["scoring"]["score_filename"],
+                "ingested_data_path": cfg["ingestion"]["ingested_data_path"],
+                "ingested_filename": cfg["ingestion"]["ingested_filename"],
+                "ingested_files_log": cfg["ingestion"]["ingested_files_log"],
                 "prod_deployment_path": cfg["prod_deployment"]["prod_deployment_path"],
-                "mlflow_logging"      : cfg["main"]["mlflow_logging"]
+                "mlflow_logging": cfg["main"]["mlflow_logging"],
             },
         )
 
     def run_diagnostics(self, filename, cfg):
+        """
+        Run diagnostics - NO LONGER USED. A standalong diagnostics is used instead.
+        capture the execution as experiment in MLFlow (dagshub)
+
+        INPUT:
+            str (path) filename : MLProject file to execute as part of the pipeline flow
+            cfg : configuration file
+        RETURN:
+            mlflow.run result
+        """
         return mlflow.run(
             uri=filename,
             entry_point="main",
             env_manager="conda",
             experiment_name=f"{self.experiment_name}_diagnostics",
             parameters={
-                "model_path_name"  : cfg["prod_deployment"]["prod_deployment_path"],
-                "model_file_name"  : cfg["training"]["output_model_name"],
-                "data_folder"      : cfg["diagnostics"]["data_folder"],
-                "data_files"       : cfg["diagnostics"]["data_files"],
-                "ingested_file"    : cfg["ingestion"]["ingested_filename"],
-                "report_folder"    : cfg["diagnostics"]["report_folder"],
+                "model_path_name": cfg["prod_deployment"]["prod_deployment_path"],
+                "model_file_name": cfg["training"]["output_model_name"],
+                "data_folder": cfg["diagnostics"]["data_folder"],
+                "data_files": cfg["diagnostics"]["data_files"],
+                "ingested_file": cfg["ingestion"]["ingested_filename"],
+                "report_folder": cfg["diagnostics"]["report_folder"],
                 "prediction_output": cfg["diagnostics"]["prediction_output"],
                 # "score_filename"   : cfg["diagnostics"]["score_filename"],
-                "timing_filename"  : cfg["diagnostics"]["timing_filename"],
-                "temp_folder"      : cfg["diagnostics"]["temp_folder"],
-                "num_features"     : cfg["num_features"],
-                "lr_params"        : cfg["logistic_regression_params"][0],
-                "mlflow_logging"   : cfg["main"]["mlflow_logging"]
+                "timing_filename": cfg["diagnostics"]["timing_filename"],
+                "temp_folder": cfg["diagnostics"]["temp_folder"],
+                "num_features": cfg["num_features"],
+                "lr_params": cfg["logistic_regression_params"][0],
+                "mlflow_logging": cfg["main"]["mlflow_logging"],
             },
         )
 
@@ -132,26 +199,28 @@ class Dyanmic_Risk_Assessment_MLFlow():
 
 
 # This automatically reads in the configuration
-@hydra.main(config_path="config", config_name="config") #, version_base=1.3)
+@hydra.main(config_path="config", config_name="config")  # , version_base=1.3)
 def go(cfg: DictConfig):
+    """
+    main method called from the main
+    """
 
     dagshub.init(
-        repo_owner="mdeevan", 
-        repo_name="dynamic-risk-assessment-system", 
-        mlflow=True
+        repo_owner="mdeevan", repo_name="dynamic-risk-assessment-system", mlflow=True
     )
-    experiment_name = datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
+    experiment_name = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
     mlflow.set_experiment(f"{experiment_name}")
 
     print("beore mlflow_start_run")
 
-    print(f'steps= {cfg["main"]["steps"]} \
-          \nmlflow logging : {cfg["main"]["mlflow_logging"]}')
+    print(
+        f'steps= {cfg["main"]["steps"]} \
+          \nmlflow logging : {cfg["main"]["mlflow_logging"]}'
+    )
 
     # Steps to execute
     steps_par = cfg["main"]["steps"]
     active_steps = steps_par.split(",") if steps_par != "all" else _steps
-
 
     dynamic_risk_assessment_mlflow = Dyanmic_Risk_Assessment_MLFlow(experiment_name)
 
@@ -162,15 +231,16 @@ def go(cfg: DictConfig):
         #########  ingestion  ########
         ##############################
         if "ingestion" in active_steps:
-            print(f"inside main.py ingestion ")
+            logger.debug("inside main.py ingestion ")
             filename = os.path.join(
                 hydra.utils.get_original_cwd(), "src", "data_ingestion"
             )
 
-            print(
-                f'cfg["ingestion"]["output_filename"] :{cfg["ingestion"]["output_filename"]}'
+            logger.debug(
+                'cfg["ingestion"]["output_filename"] : %s',
+                cfg["ingestion"]["output_filename"],
             )
-            print(f"filename : {filename}")
+            logger.debug("filename : {filename}")
 
             _ = dynamic_risk_assessment_mlflow.run_ingestion(filename, cfg)
 
@@ -178,80 +248,73 @@ def go(cfg: DictConfig):
         #########  Training   ########
         ##############################
         if "training" in active_steps:
-            print(f"inside main.py training ")
-            filename = os.path.join(
-                hydra.utils.get_original_cwd(), "src", "training"
-            )
+            logger.debug("inside main.py training ")
+            filename = os.path.join(hydra.utils.get_original_cwd(), "src", "training")
 
             print(
-                f'cfg["ingestion"]["output_filename"] :{cfg["ingestion"]["output_filename"]}'
+                'cfg["ingestion"]["output_filename"] : %s',
+                cfg["ingestion"]["output_filename"],
             )
-            print(f"filename : {filename}")
+            logger.debug("filename : %s", filename)
 
             _ = dynamic_risk_assessment_mlflow.run_training(filename, cfg)
-
-
 
         #################################
         #########  Score Model   ########
         #################################
         if "scoring" in active_steps:
-            print(f"inside main.py scoring ")
+            logger.debug("inside main.py scoring ")
             filename = os.path.join(
                 hydra.utils.get_original_cwd(), "src", "scoring_model"
             )
 
-            print(
-                f'cfg["ingestion"]["output_filename"] :{cfg["ingestion"]["output_filename"]}'
+            logger.debug(
+                'cfg["ingestion"]["output_filename"] : %s',
+                cfg["ingestion"]["output_filename"],
             )
-            print(f"filename : {filename}")
+            logger.debug("filename : %s", filename)
 
             _ = dynamic_risk_assessment_mlflow.run_scoring_model(filename, cfg)
-
 
         ###########################################
         #########  Production deployment   ########
         ###########################################
         if "deployment" in active_steps:
-            print(f"inside main.py production deployment ")
-            filename = os.path.join(
-                hydra.utils.get_original_cwd(), "src", "deployment"
-            )
+            logger.debug("inside main.py production deployment ")
+            filename = os.path.join(hydra.utils.get_original_cwd(), "src", "deployment")
 
-            print(
-                f'cfg["ingestion"]["output_filename"] :{cfg["ingestion"]["output_filename"]}'
+            logger.debug(
+                'cfg["ingestion"]["output_filename"] : %s',
+                cfg["ingestion"]["output_filename"],
             )
-            print(f"filename : {filename}")
+            logger.debug("filename : {filename}")
 
             _ = dynamic_risk_assessment_mlflow.run_production_deployment(filename, cfg)
-
 
         #################################
         #########  Diagnostics   ########
         #################################
         if "diagnostics" in active_steps:
-            print(f"inside main.py diagnostics ")
+            logger.debug("inside main.py diagnostics ")
             filename = os.path.join(
                 hydra.utils.get_original_cwd(), "src", "diagnostics"
             )
 
-            print(
-                f'cfg["ingestion"]["output_filename"] :{cfg["ingestion"]["output_filename"]}'
+            logger.debug(
+                'cfg["ingestion"]["output_filename"] : %s',
+                cfg["ingestion"]["output_filename"],
             )
-            print(f"filename : {filename}")
+            logger.debug("filename : {filename}")
 
             _ = dynamic_risk_assessment_mlflow.run_diagnostics(filename, cfg)
-
-
-
 
 
 if __name__ == "__main__":
     print("inside go")
 
     # dagshub.init(
-    #     repo_owner="mdeevan", 
-    #     repo_name="dynamic-risk-assessment-system", 
+    #     repo_owner="mdeevan",
+    #     repo_name="dynamic-risk-assessment-system",
     #     mlflow=True
     # )
 

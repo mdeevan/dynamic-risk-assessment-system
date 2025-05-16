@@ -24,6 +24,7 @@ format:
 
 lint:
 	pylint src/*.py --disable=W0212,R0914,R0903  
+	pylint *.py
 # --ignore-patterns=sanitycheck.py setup.py
 
 	
